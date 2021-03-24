@@ -1,0 +1,23 @@
+{
+  "name": "Goal Setting Extension",
+  "version": "1.0.0",
+  "description": "somethingsomething",
+  "manifest_version": 2,
+  "permissions": [
+    "tabs",
+    "storage",
+    "bookmarks",
+    "idle"
+  ],
+  "background": {
+    "scripts": ["background.js",
+    "onInstallationSetup.js"]
+  },
+  "content_scripts": [{
+    "js": ["contentHandler.js"],
+    "matches": ["*://*/*"]
+  }],
+  "browser_action": {
+    "name": "Change Mode"
+  }
+}
