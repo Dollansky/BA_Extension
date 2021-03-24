@@ -1,3 +1,5 @@
+// @ts-ignore
+import {TimeIntervall} from "../models/TimeIntervall.ts";
 
 // TODO NEXT UP: Implement Timer for the reminder window
 // TODO NEXT NEXT UP: Implement actual Intervention and update goal possibility for TimeIntervall
@@ -85,32 +87,3 @@ function changeMode() {
 
 
 
-
-
-// <------------------------------------------CLASSES------------------------------------------>
-// Duplicate Code cause noone wants you to use modules i guess.
-// @ts-ignore
-// add id field, so goals can be updated later.
-class TimeIntervall {
-    domain: string;
-    goal?: string;
-    blacklisted: boolean;
-    mode: string;
-    startTime: string;
-    endTime: string;
-
-    constructor(domain: string,
-                blacklisted: boolean,
-                mode: string,
-                startTime: string,
-                endTime: string,
-                goal?: string
-    ) {
-        this.domain = domain;
-        this.goal = goal;
-        this.blacklisted = blacklisted;
-        this.mode = mode;
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
-}

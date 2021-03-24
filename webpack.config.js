@@ -3,7 +3,7 @@ const glob = require("glob");
 const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-    entry: glob.sync('./src/**/*.ts').reduce(function(obj, el){
+    entry: glob.sync('./src/**/**/*.ts').reduce(function(obj, el){
         obj[path.parse(el).name] = el;
         return obj
     },{}),

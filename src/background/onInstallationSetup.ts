@@ -1,7 +1,11 @@
+//@tsignore
+// @ts-ignore
+import {TimeIntervall} from "../models/TimeIntervall.ts";
+
 // TODO run a automatic registration request ID for datacolleciton
 chrome.runtime.onInstalled.addListener(() => {
     const blacklist: Array<string> = ["www.reddit.com", "www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "9gag.com"];
-    const archive: Array<TimeIntervalls> = [];
+    const archive: Array<TimeIntervall> = [];
     chrome.storage.local.set({lastDomain: {domain: "Installation Time"}})
     chrome.storage.local.set({blacklist: blacklist});
     chrome.storage.local.set({mode: 'work'});
@@ -27,29 +31,5 @@ chrome.idle.onStateChanged.addListener((idleState) => {
 })
 
 
-// Duplicate Code cause noone wants you to use modules i guess.
-// @ts-ignore
-class TimeIntervalls {
-    domain: string;
-    goal?: string;
-    blacklisted: boolean;
-    mode: string;
-    startTime: Date;
-    endTime: Date;
 
-    constructor(domain: string,
-                blacklisted: boolean,
-                mode: string,
-                startTime: Date,
-                endTime: Date,
-                goal?: string
-    ) {
-        this.domain = domain;
-        this.goal = goal;
-        this.blacklisted = blacklisted;
-        this.mode = mode;
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
-}
 
