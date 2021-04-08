@@ -7,17 +7,21 @@
     "tabs",
     "storage",
     "bookmarks",
-    "idle"
+    "idle",
+    "alarms",
+    "http://localhost:8080/**/**/*"
   ],
   "background": {
-    "scripts": ["background.js",
+    "scripts": ["backgroundtest.js",
     "onInstallationSetup.js"]
   },
   "content_scripts": [{
     "js": ["contentHandler.js"],
+    "css": ["./css/generic.css"],
     "matches": ["*://*/*"]
   }],
   "browser_action": {
     "name": "Change Mode"
-  }
+  },
+  "web_accessible_resources": ["*.html"]
 }
