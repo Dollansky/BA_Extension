@@ -1,15 +1,11 @@
-var xhr = new XMLHttpRequest();
-xhr.open("GET", "http://localhost:8080/", true);
-xhr.send();
-xhr.onreadystatechange = apiHandler;
+import {TimeIntervall} from "./models/TimeIntervall";
 
 
-function apiHandler(response){
-    if(xhr.readyState === 4 && xhr.status === 200){
-        console.log(response)
-    }
+
+
+export function sendData(timeIntervall: TimeIntervall){
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "http://localhost:8080/", true);
+    xhr.send();
 }
 
-
-xhr.open('GET',"http://localhost:8080, true");
-xhr.send();

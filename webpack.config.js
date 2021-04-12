@@ -19,11 +19,6 @@ module.exports = {
         rules: [
             // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader"
             {test: /\.tsx?$/, loader: "ts-loader"},
-            // all files with a '.html' extension will be handled by 'html-loader'
-            // {
-            //     test: /\.html$/,
-            //     loader: 'html-loader',
-            // }
         ]
     },
     plugins: [

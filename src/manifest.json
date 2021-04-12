@@ -9,7 +9,8 @@
     "bookmarks",
     "idle",
     "alarms",
-    "http://localhost:8080/**/**/*"
+    "http://localhost:8080/**/**/*",
+    "chrome://favicon/*"
   ],
   "background": {
     "scripts": ["backgroundtest.js",
@@ -23,5 +24,6 @@
   "browser_action": {
     "name": "Change Mode"
   },
+  "options_page": "/options/options.html",
   "web_accessible_resources": ["*.html"]
 }
