@@ -13,17 +13,22 @@
     "chrome://favicon/*"
   ],
   "background": {
-    "scripts": ["backgroundtest.js",
+    "scripts": ["background.js",
     "onInstallationSetup.js"]
   },
   "content_scripts": [{
-    "js": ["contentHandler.js"],
-    "css": ["./css/generic.css"],
+    "js": ["contentInjection.js",
+    "materialize/materialize.min.js"],
     "matches": ["*://*/*"]
   }],
   "browser_action": {
     "name": "Change Mode"
   },
-  "options_page": "/options/options.html",
-  "web_accessible_resources": ["*.html"]
+  "web_accessible_resources": [
+    "/contentInjection/modal.html",
+    "/materialize/materialize.min.js",
+    "/img/palm-of-hand.png"
+  ],
+  "options_page": "/options/options.html"
+
 }
