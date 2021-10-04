@@ -16,22 +16,5 @@ chrome.runtime.onInstalled.addListener((details) => {
 })
 
 
-// Set to 1500 = 25 min
-// TODO Maybe handle youtube differently
-chrome.idle.setDetectionInterval(15);
-// Checks if user is afk
-chrome.idle.onStateChanged.addListener((idleState) => {
-    console.log("onInstalled");
-    if (idleState == 'active') {
-        chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-            if (tabs[0]) {
-                chrome.tabs.sendMessage(tabs[0].id, {toDo: 'Ask for Mode'});
-            }
-        })
-    }
-
-})
-
-
 
 

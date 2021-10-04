@@ -11,7 +11,7 @@ export class TimeIntervall {
                 workMode: boolean,
                 startTime: number,
                 endTime: number,
-                goal?: string
+                goal?: string,
     ) {
         this.domain = domain;
         this.goal = goal;

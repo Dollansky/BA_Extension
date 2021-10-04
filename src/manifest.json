@@ -10,6 +10,7 @@
     "idle",
     "alarms",
     "http://localhost:8080/**/**/*",
+    "http://localhost:8081/**/**/*",
     "chrome://favicon/*"
   ],
   "background": {
@@ -27,7 +28,7 @@
   "web_accessible_resources": [
     "/contentInjection/modal.html",
     "/materialize/materialize.min.js",
-    "/img/palm-of-hand.png"
+    "/img/wecker.png"
   ],
   "options_page": "/options/options.html"
 

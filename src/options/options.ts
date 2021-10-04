@@ -49,30 +49,8 @@ chrome.storage.local.get(['blacklist'], (result) => {
         table.appendChild(tableRow);
     })
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        var currTab = tabs[0];
-        let timeSelectorDiv = document.createElement('div');
-        timeSelectorDiv.className = "input-field col s12";
 
-
-        let timeSelector = document.createElement('select');
-        let options = ['1','2','3','4','5','10','15','30'];
-        options.forEach(option =>  {
-            let timeOption = document.createElement('option');
-            timeOption.value = option;
-            if (option != '1') {
-                timeOption.innerText = option + " Minuten";
-            } else {
-                timeOption.innerText = option + "Minute";
-            }
-            timeSelector.appendChild(timeOption);
-        })
-        let timeSelectorLabel = document.createElement('label');
-        timeSelectorLabel.innerText = "Someting";
-        timeSelectorDiv.append(timeSelector , timeSelectorLabel);
-        
-        document.body.appendChild(timeSelectorDiv);
         M.AutoInit(document.body);
-        window.console.log(timeSelectorDiv);
 
 
 
