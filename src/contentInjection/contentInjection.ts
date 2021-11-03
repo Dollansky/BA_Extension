@@ -1,9 +1,21 @@
+document.addEventListener("DOMContentLoaded", function(event) {
+    console.log("DOM fully loaded and parsed");
+});
+window.addEventListener("DOMContentLoaded", function(event) {
+   console.log('windowThingi');
+});
 chrome.runtime.onMessage.addListener((request, sender, resp) => {
+    window.console.log('contentInjection');
 
-
-    openInitialModal(request);
- 
-    // openGoalReminder();
+    const shadowWrapper = document.getElementById('shadowWrapper');
+    window.console.log("ReadyState: ", document.readyState);
+    // while(document.readyState)
+    if(shadowWrapper === null){
+        openInitialModal(request);
+    } else {
+        var modalinstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('modal1'))
+        modalinstance.open();
+    }
 
 })
 
@@ -16,12 +28,13 @@ function openGoalReminder(goalInput) {
     width: 0%;
     height: 0%;
     `);
+    shadowWrapper.id = 'goalReminder'
     const shadowRoot = shadowWrapper.attachShadow({mode: 'open'});
     const materializeStyle = document.createElement('link');
     materializeStyle.type = "text/css";
     materializeStyle.media = "screen,projection";
     materializeStyle.setAttribute('rel', 'stylesheet');
-    materializeStyle.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css');
+    materializeStyle.setAttribute('href', 'chrome-extension://ocfjoiapekdfcfajoopoeejhkfkdfepb/materialize/materialize.min.css');
 
     const materializeJs = document.createElement('script');
     materializeJs.type = "text/javascript";
@@ -31,13 +44,14 @@ function openGoalReminder(goalInput) {
     let containerModal = document.createElement('div');
     containerModal.className = "modal";
     containerModal.setAttribute('style', 'width: 75% !important')
-    containerModal.id = "modal1";
+    containerModal.id = "reminderModal";
     containerModal.tabIndex = 0;
 
     let imgAlarm = document.createElement('img');
     imgAlarm.src = "chrome-extension://ocfjoiapekdfcfajoopoeejhkfkdfepb/img/wecker.png";
 
     let goalSpan = document.createElement('span');
+    goalSpan.id = 'goalSpan';
     goalSpan.style.setProperty("font-size","50px")
     goalSpan.innerText = goalInput;
 
@@ -55,15 +69,17 @@ function openGoalReminder(goalInput) {
     document.body.appendChild(shadowWrapper);
 
 
-    var ModalInstance = M.Modal.init(shadowRoot.getElementById('modal1'));
+    var ModalInstance = M.Modal.init(shadowRoot.getElementById('reminderModal'));
     ModalInstance.open();
-    // TODO Forcefully close website?
+
+    window.scrollTo(0, 0);
+
 
 }
 
 function openInitialModal(request) {
-    window.console.log("newModal")
     const shadowWrapper = document.createElement('div');
+    shadowWrapper.id = 'shadowWrapper';
     shadowWrapper.setAttribute('style', `
     top: 0;
     left: 0;
@@ -75,18 +91,18 @@ function openInitialModal(request) {
     materializeStyle.type = "text/css";
     materializeStyle.media = "screen,projection";
     materializeStyle.setAttribute('rel', 'stylesheet');
-    materializeStyle.setAttribute('href', 'https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css');
+    materializeStyle.setAttribute('href', 'chrome-extension://ocfjoiapekdfcfajoopoeejhkfkdfepb/materialize/materialize.min.css');
 
     const materializeJs = document.createElement('script');
     materializeJs.type = "text/javascript";
-    materializeJs.src = "chrome-extension://ocfjoiapekdfcfajoopoeejhkfkdfepb/materialize/materialize.min.js";
+    materializeJs.src = "chrome-extension://ocfjoiapekdfcfajoopoeejhkfkdfepb/materialize/materialize.js";
     shadowRoot.append(materializeStyle, materializeJs);
 
     let row1 = document.createElement('div');
     row1.className = "row";
     let row2 = document.createElement('div');
     row2.className = "row";
-    let row3 = document.createElement('div');
+    let row3 = document.createElement('div')
     row3.className = "row";
     let row4 = document.createElement('div');
     row4.className = "row";
@@ -108,13 +124,15 @@ function openInitialModal(request) {
     selectDiv.className = "input-field";
     selectDiv.id = "selectDiv";
     let goalInput = document.createElement('input');
-    goalInput.className = "col s9"
+    goalInput.id = "goalInput";
+    goalInput.className = "col s9 autocomplete"
     goalInput.placeholder = "Was ist Ihr Ziel beim Besuch von " + request.domain;
     let label = document.createElement('label');
     label.innerText = "Ziel";
     let submitButton = document.createElement('button');
     submitButton.className = "waves-effect waves-light btn";
     submitButton.innerText = "Ziel setzen"
+
 
 
     let timeSelectorDiv = document.createElement('div');
@@ -124,7 +142,7 @@ function openInitialModal(request) {
     let timeSelector = document.createElement('select');
     timeSelector.className = "browser-default";
 
-    let options = ['1', '2', '3', '4', '5', '10', '15', '30'];
+    let options = ['1', '2', '3', '4', '5', '10', '15', '30', ,'45', '60'];
     options.forEach(option => {
         let timeOption = document.createElement('option');
         timeOption.value = option;
@@ -150,11 +168,28 @@ function openInitialModal(request) {
 
 
     var ModalInstance = M.Modal.init(shadowRoot.getElementById('modal1'));
+    console.log(ModalInstance);
     ModalInstance.open();
+
+    var autocompleteInstance = M.Autocomplete.init(shadowRoot.querySelectorAll('.autocomplete'));
+
+    var newAutocompleteData: {[key: string]: string} = {};
+    chrome.storage.local.get(['previousGoals'], (result) => {
+        // window.console.log(instances);
+        previousGoals = result.previousGoals;
+        previousGoals.forEach(entry => {
+            newAutocompleteData[entry] = null;
+        })
+        autocompleteInstance[0].updateData(newAutocompleteData);
+    })
     submitButton.addEventListener('click', function () {
         getGoal(goalInput.value, timeSelector.value, ModalInstance, request.domain);
     }, false);
-    var timeSelects = shadowRoot.getElementById('timeSelects');
+    goalInput.addEventListener('keyup', function(event) {
+        if(event.code === 'Enter'){
+            getGoal(goalInput.value, timeSelector.value, ModalInstance, request.domain);
+        }
+    })
 
     // Opening Modal scrolls Page to the bottom, following line prevents that from happening
     window.scrollTo(0, 0);
@@ -165,15 +200,24 @@ function getGoal(goalInput: string, timeFrame: any, instance: any, domain: strin
     window.console.log(goalInput);
     window.console.log(timeFrame);
     chrome.storage.local.set({latestGoal: goalInput});
+    chrome.storage.local.get(['previousGoals'], (result) => {
+        const newPreGoals = result.previousGoals;
+        newPreGoals.unshift(goalInput);
+        chrome.storage.local.set({previousGoals: newPreGoals});
+    })
     setTimeout(function () {
-        window.console.log("timeout");
-        window.console.log(location.href)
-
         if (new URL(location.href).hostname === domain) {
-            openGoalReminder(goalInput);
+            const shadowWrapper = document.getElementById('goalReminder');
+            if(shadowWrapper === null) {
+                openGoalReminder(goalInput);
+            } else {
+                shadowWrapper.shadowRoot.getElementById('goalSpan').innerText = goalInput;
+                var modalinstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'))
+                modalinstance.open();
+            }
         }
 
-
+        // TODO tF* 60000
     }, timeFrame * 6000);
     instance.close();
 }

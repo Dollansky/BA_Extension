@@ -21,3 +21,23 @@ export class TimeIntervall {
         this.endTime = endTime;
     }
 }
+export class TimeIntervallDto {
+    participantId: number;
+    blacklisted: boolean;
+    timeSpend: number;
+    goal?: string;
+
+
+
+
+    constructor(participantId: number,
+                blacklisted: boolean,
+                timeSpend: number,
+                goal?: string,
+    ) {
+        this.participantId = participantId;
+        this.goal = goal;
+        this.blacklisted = blacklisted;
+        this.timeSpend = timeSpend;
+    }
+}

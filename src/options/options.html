@@ -12,27 +12,33 @@
 </head>
 
 <body id="body">
-    <div class="row">
-        <div id="blacklistStyle" class="col s6">
-            <table id="blacklistTable" class="responsive-table">
-                <thead>
-                <tr>
-                    <th> Blacklist      </th>
-                    <th> Domain         </th>
-                    <th class="right-align"> Remove         </th>
-                </tr>
-                </thead>
-                <tbody id="blacklist">
-
-
-                </tbody>
-
-            </table>
-
-        </div>
-    <script type="text/javascript" src="../options.js"></script>
+<div class="row">
+    <div id="blacklistStyle" class="col s6 col offset-s2 row offset-s2">
+        <table id="blacklistTable" class="table-bordered responsive-table">
+            <thead>
+            <tr>
+                <th> Blacklist</th>
+                <th> Domain</th>
+                <th class="right-align"> Remove</th>
+            </tr>
+            </thead>
+            <tbody id="blacklist">
+            </tbody>
+        </table>
     </div>
+    </div>
+    <div id="modal1" class="modal" width="75%" height="75%">
+        <div class="modal-content">
+            <h4>Neue blacklisted Website</h4>
+            <div class="input-field col s6" id="inputDiv">
+                <input placeholder="www.facebook.de/??/??" id="newDomain" type="text" class="autocomplete">
+                <button class="btn waves-effect waves-light" id="submitDomain">Submit</button>
+            </div>
+        </div>
+</div>
+<div class="row"> <div class="col s2 col offset-s1 row offset-s2"><a class="waves-effect waves-light btn modal-trigger" href="#modal1" id="inputModal">New Domain</a></div> </div>
 <!--JavaScript at end of body for optimized loading-->
 </body>
 </html>
+<script type="text/javascript" src="../options.js"></script>
 <script type="text/javascript" src="../materialize/materialize.min.js"></script>
