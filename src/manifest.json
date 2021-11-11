@@ -18,10 +18,11 @@
     "onInstallationSetup.js"]
   },
   "content_scripts": [{
-    "js": ["contentInjection.js",
-    "materialize/materialize.min.js",
-    "materialize/materialize.js"],
-    "matches": ["*://*/*"]
+    "js": ["materialize/materialize.min.js",
+      "materialize/materialize.js",
+      "contentInjection.js"],
+    "matches": ["*://*/*"],
+    "run_at": "document_end"
   }],
   "browser_action": {
     "name": "Change Mode"

@@ -2239,7 +2239,8 @@ $jscomp.polyfill = function (e, r, p, m) {
 
     function Dropdown(el, options) {
       _classCallCheck(this, Dropdown);
-
+      window.console.log(el);
+      window.console.log(options);
       var _this9 = _possibleConstructorReturn(this, (Dropdown.__proto__ || Object.getPrototypeOf(Dropdown)).call(this, Dropdown, el, options));
 
       _this9.el.M_Dropdown = _this9;
@@ -2331,9 +2332,10 @@ $jscomp.polyfill = function (e, r, p, m) {
     }, {
       key: "_setupEventHandlers",
       value: function _setupEventHandlers() {
+        window.console.log(this.el);
         // Trigger keydown handler
         this.el.addEventListener('keydown', this._handleTriggerKeydownBound);
-        window.console.log('mz.js', this.el);
+        // window.console.log('mz.js', this.el);
 
         // Item click handler
         this.dropdownEl.addEventListener('click', this._handleDropdownClickBound);

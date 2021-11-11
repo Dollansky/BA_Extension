@@ -5,53 +5,54 @@ import {TimeIntervall, TimeIntervallDto} from "../models/TimeIntervall.ts";
 // TODO end Timeintervall on Idle
 let startTimeintervall: number;
 let lastDomain = "";
-let secondsTillInactive: number = 30;
-let counter: number = secondsTillInactive;
-let isInactive: boolean = true;
+// let secondsTillInactive: number = 120;
+// let counter: number = secondsTillInactive;
+// let isInactive: boolean = true;
 const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create"
+
 
 setInterval(function () {
     // TODO idk how to handle this
     chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
         if (tab[0]) {
-            counter = secondsTillInactive;
-            checkDomain(tab[0].url, tab[0].id, isInactive)
-            isInactive = false;
-        } else if (!isInactive) {
-            counter -= 1;
-            if (counter === 0) {
-                isInactive = true;
-                counter = secondsTillInactive;
-            }
-        }
+            checkDomain(tab[0].url, tab[0].id)
+        };
+
+            // if (tab[0]) {
+        //     counter = secondsTillInactive;
+        //     checkDomain(tab[0].url, tab[0].id)
+        //     isInactive = false;
+        // } else if (!isInactive) {
+        //     counter -= 1;
+        //     if (counter === 0) {
+        //         isInactive = true;
+        //         counter = secondsTillInactive;
+        //     }
+        // }
     })
 }, 1000)
 
-
-function checkDomain(website: string, tabId: number, isReactivated: boolean) {
+// TODO FIX EVERY result.baselineFinished-7 remove -7
+function checkDomain(website: string, tabId: number) {
     try {
         const url: URL = new URL(website);
-        window.console.log("new URL:", url);
         const currentDomain: string = url.hostname;
+        window.console.log(currentDomain);
         if (currentDomain !== lastDomain) {
-            chrome.storage.local.get(['blacklist', 'mode', 'latestGoal'], (result) => {
-                // setTimeout(function() {
-                //     chrome.tabs.sendMessage(tabId, {domain: currentDomain});
-                // }, 500);
-                // chrome.tabs.sendMessage(tabId, {domain: currentDomain});
-                console.log("latest Goal:", result.latestGoal);
+            chrome.storage.local.get(['blacklist', 'mode', 'latestGoal','baselineFinished'], (result) => {
 
-                if(result.blacklist.includes(currentDomain) ){
-                    setTimeout(function() {
-                        chrome.tabs.sendMessage(tabId, {domain: currentDomain});
-                    }, 1000);
+                var today = new Date();
+                var baselineFinished = new Date(result.baselineFinished[2]-7, result.baselineFinished[1],result.baselineFinished[0]);
+                var intervene = (today > baselineFinished);
+                if(result.blacklist.includes(currentDomain) && intervene && (result.mode === true )){
+                    chrome.tabs.sendMessage(tabId, {domain: currentDomain});
                 }
                 if (result.blacklist.includes(lastDomain)) {
-                    sendIntervall(lastDomain, result.latestGoal, true, startTimeintervall, result.mode);
+                    window.console.log(result.blacklist.includes(lastDomain));
+                    sendIntervall(lastDomain, result.latestGoal, true, startTimeintervall, result.mode, intervene);
                     chrome.storage.local.set({latestGoal: ''});
                 } else {
-                    window.console.log("send");
-                    sendIntervall(lastDomain, "", false, startTimeintervall, result.mode);
+                    sendIntervall(lastDomain, "", false, startTimeintervall, result.mode, intervene );
                 }
                 startTimeintervall = new Date().getTime();
                 lastDomain = currentDomain;
@@ -61,11 +62,11 @@ function checkDomain(website: string, tabId: number, isReactivated: boolean) {
     }
 }
 
-function sendIntervall(domain: string, latestGoal: string, blacklisted: boolean, startTime: number, mode: boolean) {
+function sendIntervall(domain: string, latestGoal: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean) {
 
     let timeSpend = (new Date().getTime() - startTime) / 1000
-    let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(2, blacklisted, timeSpend, latestGoal);
-    window.console.log(domain);
+    let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(999,mode, blacklisted, timeSpend, baselineFinished, latestGoal);
+    window.console.log(newTimeIntervallDto);
     if (domain !== "") {
         var xhr = new XMLHttpRequest();
         xhr.open('POST', serverUrl, true);
@@ -91,6 +92,19 @@ function sendIntervall(domain: string, latestGoal: string, blacklisted: boolean,
 
 
 
-
+chrome.browserAction.onClicked.addListener(function(tab) {
+    chrome.storage.local.get(['mode'], (result) => {
+        window.console.log('clicked');
+        window.console.log(result.mode);
+        if(result.mode === true){
+            chrome.browserAction.setIcon({path: 'img/break.png'});
+            chrome.storage.local.set({mode: false})
+        } else {
+            chrome.storage.local.set({mode: true})
+            chrome.browserAction.setIcon({path: 'img/work.png'});
+        }
+    })
+;
+})
 
 
