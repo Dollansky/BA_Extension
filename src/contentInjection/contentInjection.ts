@@ -9,52 +9,36 @@ function getAndOpenModal() {
         window.console.log(shadowWrapper);
         if ((shadowWrapper === null)) {
             openInitialModal(currentDomain.toString());
+            createGoalReminder();
         }
-        if (result.blacklist.includes(currentDomain) && (today >= baselineFinished) && result.mode === true) {
-            // @ts-ignore
-            document.getElementById('shadowWrapper').shadowRoot.getElementById('goalInput').value = '';
-            var modalInstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('modal1'));
-            if(!modalInstance.isOpen){
-                modalInstance.open();
+        if (result.blacklist.includes(currentDomain) && (today >= baselineFinished) && result.mode === true && (Date.now() > reminderRunning)) {
+            var reminderInstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('reminderModal'));
+
+            if(!reminderInstance.isOpen){
+                // @ts-ignore
+                document.getElementById('shadowWrapper').shadowRoot.getElementById('goalInput').value = '';
+                var modalInstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('modal1'));
+                if (!modalInstance.isOpen) {
+                    modalInstance.open();
+                }
             }
         }
-        ;
     })
 }
 
 getAndOpenModal();
 
 // For tab navigation
-chrome.runtime.onMessage.addListener((request, sender, resp) => {
-    const shadowWrapper = document.getElementById('shadowWrapper');
+chrome.runtime.onMessage.addListener(() => {
     if ((Date.now() > reminderRunning)) {
         getAndOpenModal();
     }
 })
 
-function openGoalReminder(goalInput) {
+function createGoalReminder() {
     window.console.log("openGoalReminder");
     const shadowRoot = document.getElementById('shadowWrapper').shadowRoot;
-    // shadowWrapper.setAttribute('style', `
-    // top: 0;
-    // left: 0;
-    // width: 0%;
-    // height: 0%;
-    // `);
-    // shadowWrapper.id = 'goalReminder'
-    // const shadowRoot = shadowWrapper.attachShadow({mode: 'open'});
-    // const materializeStyle = document.createElement('link');
-    // materializeStyle.type = "text/css";
-    // materializeStyle.media = "screen,projection";
-    // materializeStyle.setAttribute('rel', 'stylesheet');
-    // window.console.log(chrome.runtime.id);
-    const extensionUrl ='chrome-extension://' + chrome.runtime.id
-    // materializeStyle.setAttribute('href', extensionUrl + '/materialize/materialize.min.css');
-    //
-    // const materializeJs = document.createElement('script');
-    // materializeJs.type = "text/javascript";
-    // materializeJs.src = extensionUrl +  '/materialize/materialize.min.js';
-    // shadowRoot.append(materializeStyle, materializeJs);
+    const extensionUrl = 'chrome-extension://' + chrome.runtime.id
 
     let containerModal = document.createElement('div');
     containerModal.className = "modal";
@@ -68,7 +52,7 @@ function openGoalReminder(goalInput) {
     let goalSpan = document.createElement('span');
     goalSpan.id = 'goalSpan';
     goalSpan.style.setProperty("font-size", "50px")
-    goalSpan.innerText = goalInput;
+    goalSpan.innerText = 'template';
 
     let row1 = document.createElement('div');
     row1.className = "row";
@@ -81,16 +65,14 @@ function openGoalReminder(goalInput) {
     containerContent.append(containerHeader, row1);
     containerModal.append(containerContent);
     shadowRoot.appendChild(containerModal);
-    // document.body.appendChild(shadowWrapper);
 
-
-    var modalInstance = M.Modal.init(shadowRoot.getElementById('reminderModal'), {
+    M.Modal.init(shadowRoot.getElementById('reminderModal'), {
         dismissible: true,
-        onCloseEnd: el => {
+        onCloseEnd: () => {
             getAndOpenModal();
         }
     });
-    modalInstance.open();
+    // modalInstance.open();
     // window.scrollTo(0, 0);
 
 
@@ -161,7 +143,7 @@ function openInitialModal(domain) {
     let timeSelector = document.createElement('select');
     timeSelector.className = "browser-default";
 
-    let options = ['1', '2', '3', '4', '5', '10', '15', '30', , '45', '60'];
+    let options = ['1', '2', '3', '4', '5', '10', '15', '20', '25', '30', '45', '60'];
     options.forEach(option => {
         let timeOption = document.createElement('option');
         timeOption.value = option;
@@ -226,18 +208,15 @@ function getGoal(goalInput: string, timeFrame: any, instance: any, domain: strin
         chrome.storage.local.set({previousGoals: newPreGoals});
     });
     // TODO tF* 60000
-    reminderRunning = Date.now() + timeFrame * 1000;
+    reminderRunning = Date.now() + timeFrame * 6000;
     setTimeout(function () {
         if (new URL(location.href).hostname === domain) {
-            const shadowWrapper = document.getElementById('goalReminder');
-            if (shadowWrapper === null) {
-                window.console.log('goalreminder')
-                openGoalReminder(goalInput);
-            } else {
-                shadowWrapper.shadowRoot.getElementById('goalSpan').innerText = goalInput;
-                var modalinstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'))
-                modalinstance.open();
-            }
+            window.console.log('openReminder');
+            const shadowWrapper = document.getElementById('shadowWrapper');
+            shadowWrapper.shadowRoot.getElementById('goalSpan').innerText = goalInput;
+            var modalinstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'))
+            modalinstance.open();
+
         }
 
         // TODO tF* 60000

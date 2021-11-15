@@ -12,23 +12,10 @@ const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create"
 
 
 setInterval(function () {
-    // TODO idk how to handle this
     chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
         if (tab[0]) {
             checkDomain(tab[0].url, tab[0].id)
-        };
-
-            // if (tab[0]) {
-        //     counter = secondsTillInactive;
-        //     checkDomain(tab[0].url, tab[0].id)
-        //     isInactive = false;
-        // } else if (!isInactive) {
-        //     counter -= 1;
-        //     if (counter === 0) {
-        //         isInactive = true;
-        //         counter = secondsTillInactive;
-        //     }
-        // }
+        }
     })
 }, 1000)
 
@@ -92,7 +79,7 @@ function sendIntervall(domain: string, latestGoal: string, blacklisted: boolean,
 
 
 
-chrome.browserAction.onClicked.addListener(function(tab) {
+chrome.browserAction.onClicked.addListener(function() {
     chrome.storage.local.get(['mode'], (result) => {
         window.console.log('clicked');
         window.console.log(result.mode);
