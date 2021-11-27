@@ -47,3 +47,4 @@ export class TimeIntervallDto {
         this.baselineFinished = baselineFinished;
     }
 }
+

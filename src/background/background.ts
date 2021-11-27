@@ -1,15 +1,12 @@
 // @ts-ignore
 import {TimeIntervall, TimeIntervallDto} from "../models/TimeIntervall.ts";
 
-
-// TODO end Timeintervall on Idle
 let startTimeintervall: number;
 let lastDomain = "";
-// let secondsTillInactive: number = 120;
-// let counter: number = secondsTillInactive;
-// let isInactive: boolean = true;
-const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create"
-
+let lastClicked = 0;
+// const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create";
+const serverUrl = "nurdamitsgeht"
+chrome.storage.local.set({activeWebsites: []});
 
 setInterval(function () {
     chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
@@ -18,6 +15,8 @@ setInterval(function () {
         }
     })
 }, 1000)
+var today = new Date();
+chrome.storage.local.set({baselineFinished: [today.getDay() + 7, today.getMonth(), today.getFullYear()]})
 
 // TODO FIX EVERY result.baselineFinished-7 remove -7
 function checkDomain(website: string, tabId: number) {
@@ -26,20 +25,22 @@ function checkDomain(website: string, tabId: number) {
         const currentDomain: string = url.hostname;
         window.console.log(currentDomain);
         if (currentDomain !== lastDomain) {
-            chrome.storage.local.get(['blacklist', 'mode', 'latestGoal','baselineFinished'], (result) => {
+
+
+            chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished'], (result) => {
 
                 var today = new Date();
-                var baselineFinished = new Date(result.baselineFinished[2]-7, result.baselineFinished[1],result.baselineFinished[0]);
+                // TODO REMOVE THE -7
+                var baselineFinished = new Date(result.baselineFinished[2], result.baselineFinished[1], result.baselineFinished[0] - 7);
                 var intervene = (today > baselineFinished);
-                if(result.blacklist.includes(currentDomain) && intervene && (result.mode === true )){
-                    chrome.tabs.sendMessage(tabId, {domain: currentDomain});
+
+                if (result.blacklist.includes(currentDomain) && intervene && (result.mode === true)) {
+                    chrome.tabs.sendMessage(tabId, {domain: currentDomain, openReminder: false});
                 }
                 if (result.blacklist.includes(lastDomain)) {
-                    window.console.log(result.blacklist.includes(lastDomain));
-                    sendIntervall(lastDomain, result.latestGoal, true, startTimeintervall, result.mode, intervene);
-                    chrome.storage.local.set({latestGoal: ''});
+                    sendIntervall(lastDomain, true, startTimeintervall, result.mode, intervene);
                 } else {
-                    sendIntervall(lastDomain, "", false, startTimeintervall, result.mode, intervene );
+                    sendIntervall(lastDomain, false, startTimeintervall, result.mode, intervene);
                 }
                 startTimeintervall = new Date().getTime();
                 lastDomain = currentDomain;
@@ -49,11 +50,20 @@ function checkDomain(website: string, tabId: number) {
     }
 }
 
-function sendIntervall(domain: string, latestGoal: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean) {
+function sendIntervall(domain: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean) {
 
-    let timeSpend = (new Date().getTime() - startTime) / 1000
-    let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(999,mode, blacklisted, timeSpend, baselineFinished, latestGoal);
-    window.console.log(newTimeIntervallDto);
+    let timeSpend = (new Date().getTime() - startTime) / 1000;
+    var latestGoal = '';
+    chrome.storage.local.get(['activeWebsites'], (result) => {
+        result.activeWebsites.forEach(obj => {
+            if (obj.hostname === domain) {
+                latestGoal = obj.goal;
+            }
+        })
+
+    });
+
+    let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
     if (domain !== "") {
         var xhr = new XMLHttpRequest();
         xhr.open('POST', serverUrl, true);
@@ -62,14 +72,11 @@ function sendIntervall(domain: string, latestGoal: string, blacklisted: boolean,
         console.log("TimeIntervall send:", newTimeIntervallDto);
         xhr.send(JSON.stringify(newTimeIntervallDto));
 
-
         function apiHandler() {
             if (xhr.readyState === 1) {
-                console.log("Readystate 1", xhr)
                 xhr.setRequestHeader("Content-type", "application/json");
             }
             if (xhr.readyState === 4 && xhr.status === 200) {
-                console.log("Readystate 4 and status 200", xhr)
                 xhr.open('POST', serverUrl, true);
             }
         }
@@ -78,20 +85,77 @@ function sendIntervall(domain: string, latestGoal: string, blacklisted: boolean,
 }
 
 
-
-chrome.browserAction.onClicked.addListener(function() {
+chrome.browserAction.onClicked.addListener(function () {
     chrome.storage.local.get(['mode'], (result) => {
-        window.console.log('clicked');
-        window.console.log(result.mode);
-        if(result.mode === true){
+        if (lastClicked > (Date.now() - 500) / 1000) {
+
+            chrome.tabs.create({url: 'chrome-extension://' + chrome.runtime.id + '/options/options.html'})
+        }
+        if (result.mode === true) {
             chrome.browserAction.setIcon({path: 'img/break.png'});
             chrome.storage.local.set({mode: false})
         } else {
             chrome.storage.local.set({mode: true})
             chrome.browserAction.setIcon({path: 'img/work.png'});
         }
-    })
-;
+
+        lastClicked = Date.now() / 1000;
+    });
 })
 
 
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    let reminderExpiration = Date.now() + message.reminderTime;
+    let tabId = sender.tab.id;
+    let hostname = message.hostname;
+
+
+    chrome.storage.local.get(['activeWebsites'], (result) => {
+        result.activeWebsites.unshift({
+            hostname: hostname,
+            reminderRunning: reminderExpiration,
+            goal: message.goal,
+            tabId: tabId
+        });
+        chrome.storage.local.set({activeWebsites: result.activeWebsites});
+    })
+
+    chrome.tabs.query({}, function (tabs) {
+        tabs.forEach(function (tab) {
+            if (hostname === new URL(tab.url).hostname) {
+                chrome.tabs.sendMessage(tab.id, {
+                    openReminder: false,
+                    goal: message.goal,
+                    url: message.hostname,
+                    closeModal: true
+                })
+            }
+        })
+    });
+    setTimeout(() => {
+        chrome.tabs.query({}, function (tabs) {
+            tabs.forEach(function (tab) {
+                if (hostname === new URL(tab.url).hostname) {
+                    chrome.tabs.sendMessage(tab.id, {
+                        openReminder: true,
+                        goal: message.goal,
+                        url: message.hostname,
+                        closeModal: false
+                    })
+                }
+            })
+
+        })
+        chrome.storage.local.get(['activeWebsites'], (result) => {
+            let newArray = [];
+            result.activeWebsites.forEach(obj => {
+                if (obj.hostname !== hostname) {
+                    newArray.unshift(obj)
+                }
+            })
+            chrome.storage.local.set({activeWebsites: newArray});
+
+        });
+    }, message.reminderTime)
+
+});

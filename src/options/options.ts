@@ -55,7 +55,6 @@ chrome.storage.local.get(['blacklist', 'previousGoals'], (result) => {
         newDomain();
     })
 
-    document.getElementById('inputModal').addEventListener('click', addAutoCompleteData)
 
 
     chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
@@ -92,14 +91,3 @@ function newDomain() {
     }
 }
 
-function addAutoCompleteData() {
-    const inputNewDomainInstance = document.getElementById('newDomain');
-    var newAutocompleteData: {[key: string]: string} = {};
-    previousGoals.forEach(entry => {
-        newAutocompleteData[entry] = null;
-    })
-    var instances = M.Autocomplete.init(inputNewDomainInstance);
-    instances.updateData(newAutocompleteData);
-
-
-}

@@ -2239,8 +2239,7 @@ $jscomp.polyfill = function (e, r, p, m) {
 
     function Dropdown(el, options) {
       _classCallCheck(this, Dropdown);
-      window.console.log(el);
-      window.console.log(options);
+
       var _this9 = _possibleConstructorReturn(this, (Dropdown.__proto__ || Object.getPrototypeOf(Dropdown)).call(this, Dropdown, el, options));
 
       _this9.el.M_Dropdown = _this9;
@@ -2332,7 +2331,6 @@ $jscomp.polyfill = function (e, r, p, m) {
     }, {
       key: "_setupEventHandlers",
       value: function _setupEventHandlers() {
-        window.console.log(this.el);
         // Trigger keydown handler
         this.el.addEventListener('keydown', this._handleTriggerKeydownBound);
         // window.console.log('mz.js', this.el);
@@ -2574,7 +2572,7 @@ $jscomp.polyfill = function (e, r, p, m) {
       key: "_makeDropdownFocusable",
       value: function _makeDropdownFocusable() {
         // Needed for arrow key navigation
-        window.console.log('dropdown', this.dropdownEl)
+
         // this.dropdownEl.tabIndex = 0;
 
         // Only set tabindex if it hasn't been set by user
