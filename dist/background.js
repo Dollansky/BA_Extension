@@ -123,24 +123,24 @@ function sendIntervall(domain, blacklisted, startTime, mode, baselineFinished) {
                 latestGoal = obj.goal;
             }
         });
-    });
-    let newTimeIntervallDto = new TimeIntervall_ts_1.TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
-    if (domain !== "") {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', serverUrl, true);
-        xhr.setRequestHeader("Content-type", "application/json");
-        xhr.onreadystatechange = apiHandler;
-        console.log("TimeIntervall send:", newTimeIntervallDto);
-        xhr.send(JSON.stringify(newTimeIntervallDto));
-        function apiHandler() {
-            if (xhr.readyState === 1) {
-                xhr.setRequestHeader("Content-type", "application/json");
-            }
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                xhr.open('POST', serverUrl, true);
+        let newTimeIntervallDto = new TimeIntervall_ts_1.TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
+        if (domain !== "") {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', serverUrl, true);
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.onreadystatechange = apiHandler;
+            console.log("TimeIntervall send:", newTimeIntervallDto);
+            xhr.send(JSON.stringify(newTimeIntervallDto));
+            function apiHandler() {
+                if (xhr.readyState === 1) {
+                    xhr.setRequestHeader("Content-type", "application/json");
+                }
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    xhr.open('POST', serverUrl, true);
+                }
             }
         }
-    }
+    });
 }
 chrome.browserAction.onClicked.addListener(function () {
     chrome.storage.local.get(['mode'], (result) => {
@@ -203,6 +203,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     newArray.unshift(obj);
                 }
             });
+            window.console.log('Website removed from active', newArray);
             chrome.storage.local.set({ activeWebsites: newArray });
         });
     }, message.reminderTime);

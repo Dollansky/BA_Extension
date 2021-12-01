@@ -59,29 +59,28 @@ function sendIntervall(domain: string, blacklisted: boolean, startTime: number, 
             if (obj.hostname === domain) {
                 latestGoal = obj.goal;
             }
+
         })
+        let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
+        if (domain !== "") {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', serverUrl, true);
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.onreadystatechange = apiHandler;
+            console.log("TimeIntervall send:", newTimeIntervallDto);
+            xhr.send(JSON.stringify(newTimeIntervallDto));
 
-    });
-
-    let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
-    if (domain !== "") {
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', serverUrl, true);
-        xhr.setRequestHeader("Content-type", "application/json");
-        xhr.onreadystatechange = apiHandler;
-        console.log("TimeIntervall send:", newTimeIntervallDto);
-        xhr.send(JSON.stringify(newTimeIntervallDto));
-
-        function apiHandler() {
-            if (xhr.readyState === 1) {
-                xhr.setRequestHeader("Content-type", "application/json");
-            }
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                xhr.open('POST', serverUrl, true);
+            function apiHandler() {
+                if (xhr.readyState === 1) {
+                    xhr.setRequestHeader("Content-type", "application/json");
+                }
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    xhr.open('POST', serverUrl, true);
+                }
             }
         }
-    }
 
+    });
 }
 
 
@@ -146,6 +145,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
 
         })
+
         chrome.storage.local.get(['activeWebsites'], (result) => {
             let newArray = [];
             result.activeWebsites.forEach(obj => {
@@ -153,6 +153,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     newArray.unshift(obj)
                 }
             })
+            window.console.log('Website removed from active', newArray);
             chrome.storage.local.set({activeWebsites: newArray});
 
         });
