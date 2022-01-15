@@ -2,6 +2,46 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 144:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+// Webpack imports whole file this is a workaround
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.checkIfBaselineIsFinished = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = void 0;
+function checkIfModeActive(dateWhenModeEnds) {
+    window.console.log("check If Mode Active");
+    window.console.log("dateWhenModeEnds:", dateWhenModeEnds);
+    if (dateWhenModeEnds < Date.now() || dateWhenModeEnds == undefined) {
+        chrome.storage.local.set({ mode: null });
+        openOrCloseModeSelectInEveryTab("Open Mode Select");
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+exports.checkIfModeActive = checkIfModeActive;
+function openOrCloseModeSelectInEveryTab(open) {
+    chrome.tabs.query({}, function (tabs) {
+        tabs.forEach(function (tab) {
+            chrome.tabs.sendMessage(tab.id, {
+                action: open
+            });
+        });
+    });
+}
+exports.openOrCloseModeSelectInEveryTab = openOrCloseModeSelectInEveryTab;
+function checkIfBaselineIsFinished(baselineFinished) {
+    var today = new Date();
+    var baselineDate = new Date(baselineFinished[0] - 7, baselineFinished[1], baselineFinished[2]);
+    return (today >= baselineDate);
+}
+exports.checkIfBaselineIsFinished = checkIfBaselineIsFinished;
+
+
+/***/ }),
+
 /***/ 709:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -70,12 +110,15 @@ var __webpack_unused_export__;
 __webpack_unused_export__ = ({ value: true });
 // @ts-ignore
 const TimeIntervall_ts_1 = __webpack_require__(709);
-let startTimeintervall;
+// @ts-ignore
+const exportedFunctions_ts_1 = __webpack_require__(144);
+let startTimeintervall = 0;
 let lastDomain = "";
-let lastClicked = 0;
 // const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create";
 const serverUrl = "nurdamitsgeht";
 chrome.storage.local.set({ activeWebsites: [] });
+var today = new Date();
+chrome.storage.local.set({ baselineFinished: [today.getDay() + 7, today.getMonth(), today.getFullYear()] });
 setInterval(function () {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
         if (tab[0]) {
@@ -83,29 +126,25 @@ setInterval(function () {
         }
     });
 }, 1000);
-var today = new Date();
-chrome.storage.local.set({ baselineFinished: [today.getDay() + 7, today.getMonth(), today.getFullYear()] });
 // TODO FIX EVERY result.baselineFinished-7 remove -7
 function checkDomain(website, tabId) {
     try {
-        const url = new URL(website);
-        const currentDomain = url.hostname;
-        window.console.log(currentDomain);
+        const currentDomain = new URL(website).hostname;
         if (currentDomain !== lastDomain) {
             chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished'], (result) => {
+                if (result.mode === null) {
+                    exportedFunctions_ts_1.openOrCloseModeSelectInEveryTab("Open Mode Select");
+                }
                 var today = new Date();
-                // TODO REMOVE THE -7
+                // TODO REMOVE THE -7 AND SWITCH FOR
+                // checkIfBaselineIsFinished(result.baselineFinished)
                 var baselineFinished = new Date(result.baselineFinished[2], result.baselineFinished[1], result.baselineFinished[0] - 7);
                 var intervene = (today > baselineFinished);
                 if (result.blacklist.includes(currentDomain) && intervene && (result.mode === true)) {
-                    chrome.tabs.sendMessage(tabId, { domain: currentDomain, openReminder: false });
+                    // Open Modal
+                    chrome.tabs.sendMessage(tabId, { domain: currentDomain, action: "Open Intervention Modal" });
                 }
-                if (result.blacklist.includes(lastDomain)) {
-                    sendIntervall(lastDomain, true, startTimeintervall, result.mode, intervene);
-                }
-                else {
-                    sendIntervall(lastDomain, false, startTimeintervall, result.mode, intervene);
-                }
+                sendIntervallAndGetGoal(lastDomain, result.blacklist.includes(lastDomain), startTimeintervall, result.mode, intervene);
                 startTimeintervall = new Date().getTime();
                 lastDomain = currentDomain;
             });
@@ -114,7 +153,7 @@ function checkDomain(website, tabId) {
     catch (e) {
     }
 }
-function sendIntervall(domain, blacklisted, startTime, mode, baselineFinished) {
+function sendIntervallAndGetGoal(domain, blacklisted, startTime, mode, baselineFinished) {
     let timeSpend = (new Date().getTime() - startTime) / 1000;
     var latestGoal = '';
     chrome.storage.local.get(['activeWebsites'], (result) => {
@@ -125,43 +164,56 @@ function sendIntervall(domain, blacklisted, startTime, mode, baselineFinished) {
         });
         let newTimeIntervallDto = new TimeIntervall_ts_1.TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
         if (domain !== "") {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', serverUrl, true);
-            xhr.setRequestHeader("Content-type", "application/json");
-            xhr.onreadystatechange = apiHandler;
-            console.log("TimeIntervall send:", newTimeIntervallDto);
-            xhr.send(JSON.stringify(newTimeIntervallDto));
-            function apiHandler() {
-                if (xhr.readyState === 1) {
-                    xhr.setRequestHeader("Content-type", "application/json");
-                }
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    xhr.open('POST', serverUrl, true);
-                }
-            }
+            sendIntervall(newTimeIntervallDto);
         }
     });
 }
-chrome.browserAction.onClicked.addListener(function () {
-    chrome.storage.local.get(['mode'], (result) => {
-        if (lastClicked > (Date.now() - 500) / 1000) {
-            chrome.tabs.create({ url: 'chrome-extension://' + chrome.runtime.id + '/options/options.html' });
+function sendIntervall(newTimeIntervallDto) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', serverUrl, true);
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.onreadystatechange = apiHandler;
+    console.log("TimeIntervall send:", newTimeIntervallDto);
+    xhr.send(JSON.stringify(newTimeIntervallDto));
+    function apiHandler() {
+        if (xhr.readyState === 1) {
+            xhr.setRequestHeader("Content-type", "application/json");
         }
-        if (result.mode === true) {
-            chrome.browserAction.setIcon({ path: 'img/break.png' });
-            chrome.storage.local.set({ mode: false });
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            xhr.open('POST', serverUrl, true);
         }
-        else {
-            chrome.storage.local.set({ mode: true });
-            chrome.browserAction.setIcon({ path: 'img/work.png' });
-        }
-        lastClicked = Date.now() / 1000;
-    });
+    }
+}
+chrome.runtime.onMessage.addListener((message, sender) => {
+    if (message.action == "Set Reminder") {
+        let reminderExpiration = Date.now() + message.reminderTime;
+        let tabId = sender.tab.id;
+        let hostname = message.hostname;
+        updateActiveWebsitesAndSetTimeoutForReminder(hostname, reminderExpiration, message, tabId);
+    }
 });
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    let reminderExpiration = Date.now() + message.reminderTime;
-    let tabId = sender.tab.id;
-    let hostname = message.hostname;
+function openOrCloseInputModalOnEveryTab(hostname, message, action) {
+    chrome.tabs.query({}, function (tabs) {
+        tabs.forEach(function (tab) {
+            if (hostname === new URL(tab.url).hostname) {
+                chrome.tabs.sendMessage(tab.id, {
+                    action: action,
+                    goal: message.goal,
+                    url: message.hostname,
+                });
+            }
+        });
+    });
+}
+function updateActiveWebsitesAndSetTimeoutForReminder(hostname, reminderExpiration, message, tabId) {
+    addNewActiveWebsite(hostname, reminderExpiration, message, tabId);
+    openOrCloseInputModalOnEveryTab(hostname, message, "Close Intervention Modal");
+    setTimeout(() => {
+        openOrCloseInputModalOnEveryTab(hostname, message, "Open Reminder Modal");
+        removeActiveWebsite(hostname);
+    }, message.reminderTime);
+}
+function addNewActiveWebsite(hostname, reminderExpiration, message, tabId) {
     chrome.storage.local.get(['activeWebsites'], (result) => {
         result.activeWebsites.unshift({
             hostname: hostname,
@@ -171,43 +223,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         chrome.storage.local.set({ activeWebsites: result.activeWebsites });
     });
-    chrome.tabs.query({}, function (tabs) {
-        tabs.forEach(function (tab) {
-            if (hostname === new URL(tab.url).hostname) {
-                chrome.tabs.sendMessage(tab.id, {
-                    openReminder: false,
-                    goal: message.goal,
-                    url: message.hostname,
-                    closeModal: true
-                });
+}
+function removeActiveWebsite(hostname) {
+    chrome.storage.local.get(['activeWebsites'], (result) => {
+        let newArray = [];
+        result.activeWebsites.forEach(obj => {
+            if (obj.hostname !== hostname) {
+                newArray.unshift(obj);
             }
         });
+        chrome.storage.local.set({ activeWebsites: newArray });
     });
-    setTimeout(() => {
-        chrome.tabs.query({}, function (tabs) {
-            tabs.forEach(function (tab) {
-                if (hostname === new URL(tab.url).hostname) {
-                    chrome.tabs.sendMessage(tab.id, {
-                        openReminder: true,
-                        goal: message.goal,
-                        url: message.hostname,
-                        closeModal: false
-                    });
-                }
-            });
-        });
-        chrome.storage.local.get(['activeWebsites'], (result) => {
-            let newArray = [];
-            result.activeWebsites.forEach(obj => {
-                if (obj.hostname !== hostname) {
-                    newArray.unshift(obj);
-                }
-            });
-            window.console.log('Website removed from active', newArray);
-            chrome.storage.local.set({ activeWebsites: newArray });
-        });
-    }, message.reminderTime);
-});
+}
 
 })();
 

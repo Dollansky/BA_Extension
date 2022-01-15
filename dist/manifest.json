@@ -14,16 +14,25 @@
     "chrome://favicon/*"
   ],
   "background": {
-    "scripts": ["background.js",
-    "onInstallationSetup.js"]
+    "scripts": [
+      "background.js",
+      "modeSelection.js",
+      "onInstallationSetup.js"
+    ]
   },
-  "content_scripts": [{
-    "js": [
-      "materialize/materialize.js",
-      "contentInjection.js"],
-    "matches": ["*://*/*"],
-    "run_at": "document_end"
-  }],
+  "content_scripts": [
+    {
+      "js": [
+        "materialize/materialize.js",
+        "contentInjection.js",
+        "mode.js"
+      ],
+      "matches": [
+        "*://*/*"
+      ],
+      "run_at": "document_end"
+    }
+  ],
   "browser_action": {
     "name": "Change Mode"
   },
@@ -31,8 +40,9 @@
     "/contentInjection/modal.html",
     "/materialize/materialize.js",
     "/materialize/materialize.min.css",
-    "/img/wecker.png"
+    "/img/wecker.png",
+    "/img/coffee-cup.png",
+    "/img/laptop.png"
   ],
   "options_page": "/options/options.html"
-
 }

@@ -1,8 +1,113 @@
-
-
-
+//@ts-ignore
+import {checkIfBaselineIsFinished} from "../background/exportedFunctions.ts";
 
 var currentDomain = new URL(location.href).hostname;
+
+chrome.storage.local.get(['blacklist'], result => {
+    if(result.blacklist.includes(currentDomain)){
+        openInitialModal(currentDomain)
+    }
+})
+
+function getAndOpenModal() {
+    chrome.storage.local.get(['blacklist', 'baselineFinished', 'mode', 'activeWebsites'], (result) => {
+        const currentDomain = new URL(location.href).hostname;
+
+        var isBaselineFinished = checkIfBaselineIsFinished(result.baselineFinished);
+        var isAlreadyActive: boolean  = checkIfAlreadyActive(result, currentDomain);
+        window.console.log(isAlreadyActive);
+
+        // TODO deactivated to make testing easier
+        // if (result.blacklist.includes(currentDomain) && isBaselineFinished && result.mode && !isAlreadyActive) {
+        if (result.blacklist.includes(currentDomain) && !isAlreadyActive && result.mode === true) {
+            const shadowWrapper = document.getElementById('shadowWrapper');
+            if ((shadowWrapper === null)) {
+                openInitialModal(currentDomain);
+            }
+
+            if (!getReminderInstance().isOpen) {
+                // @ts-ignore
+                document.getElementById('shadowWrapper').shadowRoot.getElementById('goalInput').value = '';
+                var modalInstance = getModalInstance();
+
+                // timeout prevents site from scrolling
+                if (!modalInstance.isOpen) {
+                    setTimeout(function () {
+                            modalInstance.open();
+                        },
+                        500);
+                }
+            }
+        }
+    })
+}
+
+
+function checkIfAlreadyActive (result: { [p: string]: any }, currentDomain: string) {
+    let isActive: boolean = false;
+    result.activeWebsites.forEach(obj => {
+        if (obj.hostname === currentDomain) {
+            isActive = true;
+        }
+    });
+    return isActive;
+}
+
+function getReminderInstance() {
+    return M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('reminderModal'));
+}
+
+function getModalInstance() {
+    return M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('modal1'));
+}
+
+
+// For tab navigation
+chrome.runtime.onMessage.addListener((message) => {
+
+    if (message.action == "Open Reminder Modal"  && (message.url === new URL(location.href).hostname)) {
+        openReminder(message.goal)
+    }
+    if (message.action == "Close Intervention Modal") {
+        // @ts-ignore
+        document.getElementById('shadowWrapper').shadowRoot.getElementById('goalInput').value = '';
+        getModalInstance().close();
+
+    } else if(message.action == "Open Intervention Modal") {
+        getAndOpenModal();
+    }
+});
+
+function openReminder(goal) {
+    const shadowWrapper = document.getElementById('shadowWrapper');
+    shadowWrapper.shadowRoot.getElementById('goalSpan').innerText = goal;
+    var modalInstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'));
+    modalInstance.options.dismissible = false;
+    modalInstance.open();
+    // Reminder can be dismissed after 1 sek
+    setTimeout(() => {
+            modalInstance.options.dismissible = true
+        }
+        , 1000)
+}
+
+
+function setLatestAndPreviousGoals(goalInput: string, timeFrame: any) {
+
+    chrome.storage.local.set({latestGoal: goalInput});
+    chrome.storage.local.get(['previousGoals'], (result) => {
+        const newPreGoals = result.previousGoals;
+        newPreGoals.unshift(goalInput);
+        chrome.storage.local.set({previousGoals: newPreGoals});
+    });
+    chrome.runtime.sendMessage({
+        action: "Set Reminder",
+        goal: goalInput,
+        hostname: new URL(location.href).hostname,
+        reminderTime: timeFrame * 60000
+    });
+
+}
 
 // TODO youtube sucks with input fix kinda workaround at least input stays focused when pressing shortcuts
 // youtube still recognises shortcuts even when input is focused
@@ -10,7 +115,7 @@ onkeydown = function (ev) {
     const shadowWrapper = document.getElementById('shadowWrapper');
     if(currentDomain === 'www.youtube.com' && shadowWrapper !== null) {
         // @ts-ignore
-        var modalInstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('modal1'));
+        var modalInstance = getModalInstance();
         if(modalInstance.isOpen) {
             var goalInput = shadowWrapper.shadowRoot.getElementById('goalInput');
             goalInput.focus();
@@ -18,6 +123,8 @@ onkeydown = function (ev) {
 
     }
 }
+
+
 function openInitialModal (domain: string ) {
     const shadowWrapper = document.createElement('div');
     shadowWrapper.id = 'shadowWrapper';
@@ -133,7 +240,6 @@ function openInitialModal (domain: string ) {
     inputDiv.append(row1, row2, row3);
     selectDiv.append(row4);
 
-
     containerContent.append(containerHeader, inputDiv, selectDiv);
     containerModal.append(containerContent);
     shadowRoot.appendChild(containerModal);
@@ -149,21 +255,23 @@ function openInitialModal (domain: string ) {
     var autocompleteInstance = M.Autocomplete.init(shadowRoot.querySelectorAll('.autocomplete'));
 
     var newAutocompleteData: { [key: string]: string } = {};
+
     chrome.storage.local.get(['previousGoals'], (result) => {
-        // window.console.log(instances);
-        previousGoals = result.previousGoals;
+        let previousGoals = result.previousGoals;
         previousGoals.forEach(entry => {
             newAutocompleteData[entry] = null;
         })
         autocompleteInstance[0].updateData(newAutocompleteData);
     })
     submitButton.addEventListener('click', function () {
-        getGoal(goalInput.value, timeSelector.value, ModalInstance, domain);
+        setLatestAndPreviousGoals(goalInput.value, timeSelector.value);
+        ModalInstance.close();
     }, false);
     goalInput.addEventListener('keyup', function (event) {
         goalInput.focus();
         if (event.code === 'Enter') {
-            getGoal(goalInput.value, timeSelector.value, ModalInstance, domain);
+            setLatestAndPreviousGoals(goalInput.value, timeSelector.value);
+            ModalInstance.close();
         }
     })
     goalInput.addEventListener('keydown', function (event) {
@@ -213,98 +321,3 @@ function openInitialModal (domain: string ) {
     });
     getAndOpenModal();
 }
-
-chrome.storage.local.get(['blacklist'], result => {
-    if(result.blacklist.includes(currentDomain)){
-        openInitialModal(currentDomain)
-    }
-})
-
-
-function getAndOpenModal() {
-    chrome.storage.local.get(['blacklist', 'baselineFinished', 'mode', 'activeWebsites'], (result) => {
-        var today = new Date();
-        var baselineFinished = new Date(result.baselineFinished[0] - 7, result.baselineFinished[1], result.baselineFinished[2]);
-        var isAlreadyActive: boolean = false;
-        const currentDomain = new URL(location.href).hostname;
-        const shadowWrapper = document.getElementById('shadowWrapper');
-        result.activeWebsites.forEach(obj => {
-            if (obj.hostname === currentDomain) {
-                isAlreadyActive = true;
-            }
-        })
-        if ((shadowWrapper === null)) {
-            openInitialModal(currentDomain.toString());
-        }
-        // TODO deactivated to make testing easier
-        // if (result.blacklist.includes(currentDomain) && (today >= baselineFinished) && result.mode === true  && !isAlreadyActive) {
-        if (result.blacklist.includes(currentDomain) && !isAlreadyActive && result.mode === true) {
-            var reminderInstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('reminderModal'));
-
-            if (!reminderInstance.isOpen) {
-                // @ts-ignore
-                document.getElementById('shadowWrapper').shadowRoot.getElementById('goalInput').value = '';
-                var modalInstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('modal1'));
-
-                // timeout prevents site from scrolling
-                if (!modalInstance.isOpen) {
-                    setTimeout(function () {
-                            modalInstance.open();
-                        },
-                        500);
-                }
-            }
-        }
-    })
-}
-
-
-// For tab navigation
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-
-    if (message.openReminder && (message.url === new URL(location.href).hostname)) {
-        openReminder(message.goal)
-    }
-    if (message.closeModal) {
-        // @ts-ignore
-        document.getElementById('shadowWrapper').shadowRoot.getElementById('goalInput').value = '';
-        var modalInstance = M.Modal.getInstance(document.getElementById('shadowWrapper').shadowRoot.getElementById('modal1'));
-        modalInstance.close()
-    } else {
-        getAndOpenModal();
-    }
-});
-
-function openReminder(goal) {
-    const shadowWrapper = document.getElementById('shadowWrapper');
-    shadowWrapper.shadowRoot.getElementById('goalSpan').innerText = goal;
-    var modalInstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'));
-    modalInstance.options.dismissible = false;
-    modalInstance.open();
-    // Reminder can be dismissed after 1 sek
-    setTimeout(() => {
-            modalInstance.options.dismissible = true
-        }
-        , 1000)
-
-
-}
-
-
-
-function getGoal(goalInput: string, timeFrame: any, instance: any, domain: string) {
-
-    chrome.storage.local.set({latestGoal: goalInput});
-    chrome.storage.local.get(['previousGoals'], (result) => {
-        const newPreGoals = result.previousGoals;
-        newPreGoals.unshift(goalInput);
-        chrome.storage.local.set({previousGoals: newPreGoals});
-    });
-    chrome.runtime.sendMessage({
-        goal: goalInput,
-        hostname: new URL(location.href).hostname,
-        reminderTime: timeFrame * 60000
-    });
-    instance.close();
-}
-

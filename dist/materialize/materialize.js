@@ -10269,6 +10269,9 @@ $jscomp.polyfill = function (e, r, p, m) {
     }, {
       key: "getInstance",
       value: function getInstance(el) {
+        if(el === null){
+          el = document.getElementById('modeShadow').shadowRoot.getElementById('modeTimepicker');
+        }
         var domElem = !!el.jquery ? el[0] : el;
         return domElem.M_Timepicker;
       }

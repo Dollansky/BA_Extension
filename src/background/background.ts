@@ -1,12 +1,15 @@
 // @ts-ignore
 import {TimeIntervall, TimeIntervallDto} from "../models/TimeIntervall.ts";
+// @ts-ignore
+import {checkIfModeActive, openOrCloseModeSelectInEveryTab} from "./exportedFunctions.ts";
 
-let startTimeintervall: number;
+let startTimeintervall: number = 0;
 let lastDomain = "";
-let lastClicked = 0;
 // const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create";
 const serverUrl = "nurdamitsgeht"
 chrome.storage.local.set({activeWebsites: []});
+var today = new Date();
+chrome.storage.local.set({baselineFinished: [today.getDay() + 7, today.getMonth(), today.getFullYear()]})
 
 setInterval(function () {
     chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
@@ -15,33 +18,31 @@ setInterval(function () {
         }
     })
 }, 1000)
-var today = new Date();
-chrome.storage.local.set({baselineFinished: [today.getDay() + 7, today.getMonth(), today.getFullYear()]})
+
+
 
 // TODO FIX EVERY result.baselineFinished-7 remove -7
 function checkDomain(website: string, tabId: number) {
     try {
-        const url: URL = new URL(website);
-        const currentDomain: string = url.hostname;
-        window.console.log(currentDomain);
+        const currentDomain: string = new URL(website).hostname;
         if (currentDomain !== lastDomain) {
-
-
             chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished'], (result) => {
-
+                if(result.mode === null){
+                    openOrCloseModeSelectInEveryTab("Open Mode Select");
+                }
                 var today = new Date();
-                // TODO REMOVE THE -7
+                // TODO REMOVE THE -7 AND SWITCH FOR
+                // checkIfBaselineIsFinished(result.baselineFinished)
                 var baselineFinished = new Date(result.baselineFinished[2], result.baselineFinished[1], result.baselineFinished[0] - 7);
                 var intervene = (today > baselineFinished);
 
                 if (result.blacklist.includes(currentDomain) && intervene && (result.mode === true)) {
-                    chrome.tabs.sendMessage(tabId, {domain: currentDomain, openReminder: false});
+                    // Open Modal
+                    chrome.tabs.sendMessage(tabId, {domain: currentDomain, action: "Open Intervention Modal"});
                 }
-                if (result.blacklist.includes(lastDomain)) {
-                    sendIntervall(lastDomain, true, startTimeintervall, result.mode, intervene);
-                } else {
-                    sendIntervall(lastDomain, false, startTimeintervall, result.mode, intervene);
-                }
+
+                sendIntervallAndGetGoal(lastDomain, result.blacklist.includes(lastDomain), startTimeintervall, result.mode, intervene);
+
                 startTimeintervall = new Date().getTime();
                 lastDomain = currentDomain;
             })
@@ -50,7 +51,8 @@ function checkDomain(website: string, tabId: number) {
     }
 }
 
-function sendIntervall(domain: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean) {
+
+function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean) {
 
     let timeSpend = (new Date().getTime() - startTime) / 1000;
     var latestGoal = '';
@@ -63,52 +65,67 @@ function sendIntervall(domain: string, blacklisted: boolean, startTime: number, 
         })
         let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
         if (domain !== "") {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', serverUrl, true);
-            xhr.setRequestHeader("Content-type", "application/json");
-            xhr.onreadystatechange = apiHandler;
-            console.log("TimeIntervall send:", newTimeIntervallDto);
-            xhr.send(JSON.stringify(newTimeIntervallDto));
-
-            function apiHandler() {
-                if (xhr.readyState === 1) {
-                    xhr.setRequestHeader("Content-type", "application/json");
-                }
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    xhr.open('POST', serverUrl, true);
-                }
-            }
+            sendIntervall(newTimeIntervallDto);
         }
-
     });
 }
 
+function sendIntervall(newTimeIntervallDto: TimeIntervallDto) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', serverUrl, true);
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.onreadystatechange = apiHandler;
+    console.log("TimeIntervall send:", newTimeIntervallDto);
+    xhr.send(JSON.stringify(newTimeIntervallDto));
 
-chrome.browserAction.onClicked.addListener(function () {
-    chrome.storage.local.get(['mode'], (result) => {
-        if (lastClicked > (Date.now() - 500) / 1000) {
-
-            chrome.tabs.create({url: 'chrome-extension://' + chrome.runtime.id + '/options/options.html'})
+    function apiHandler() {
+        if (xhr.readyState === 1) {
+            xhr.setRequestHeader("Content-type", "application/json");
         }
-        if (result.mode === true) {
-            chrome.browserAction.setIcon({path: 'img/break.png'});
-            chrome.storage.local.set({mode: false})
-        } else {
-            chrome.storage.local.set({mode: true})
-            chrome.browserAction.setIcon({path: 'img/work.png'});
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            xhr.open('POST', serverUrl, true);
         }
+    }
+}
 
-        lastClicked = Date.now() / 1000;
+chrome.runtime.onMessage.addListener((message, sender) => {
+    if(message.action == "Set Reminder") {
+        let reminderExpiration = Date.now() + message.reminderTime;
+        let tabId = sender.tab.id;
+        let hostname = message.hostname;
+        updateActiveWebsitesAndSetTimeoutForReminder(hostname, reminderExpiration, message, tabId);
+
+    }
+});
+
+function openOrCloseInputModalOnEveryTab(hostname, message, action) {
+    chrome.tabs.query({}, function (tabs) {
+        tabs.forEach(function (tab) {
+            if (hostname === new URL(tab.url).hostname) {
+                chrome.tabs.sendMessage(tab.id, {
+                    action: action,
+                    goal: message.goal,
+                    url: message.hostname,
+                })
+            }
+        })
     });
-})
 
+}
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    let reminderExpiration = Date.now() + message.reminderTime;
-    let tabId = sender.tab.id;
-    let hostname = message.hostname;
+function updateActiveWebsitesAndSetTimeoutForReminder(hostname, reminderExpiration: number, message, tabId: number) {
 
+    addNewActiveWebsite(hostname, reminderExpiration, message, tabId);
 
+    openOrCloseInputModalOnEveryTab(hostname, message, "Close Intervention Modal");
+
+    setTimeout(() => {
+        openOrCloseInputModalOnEveryTab(hostname, message, "Open Reminder Modal")
+        removeActiveWebsite(hostname);
+    }, message.reminderTime)
+}
+
+function addNewActiveWebsite(hostname, reminderExpiration: number, message, tabId: number) {
     chrome.storage.local.get(['activeWebsites'], (result) => {
         result.activeWebsites.unshift({
             hostname: hostname,
@@ -118,45 +135,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
         chrome.storage.local.set({activeWebsites: result.activeWebsites});
     })
+}
 
-    chrome.tabs.query({}, function (tabs) {
-        tabs.forEach(function (tab) {
-            if (hostname === new URL(tab.url).hostname) {
-                chrome.tabs.sendMessage(tab.id, {
-                    openReminder: false,
-                    goal: message.goal,
-                    url: message.hostname,
-                    closeModal: true
-                })
+function removeActiveWebsite(hostname) {
+    chrome.storage.local.get(['activeWebsites'], (result) => {
+        let newArray = [];
+        result.activeWebsites.forEach(obj => {
+            if (obj.hostname !== hostname) {
+                newArray.unshift(obj)
             }
         })
+        chrome.storage.local.set({activeWebsites: newArray});
     });
-    setTimeout(() => {
-        chrome.tabs.query({}, function (tabs) {
-            tabs.forEach(function (tab) {
-                if (hostname === new URL(tab.url).hostname) {
-                    chrome.tabs.sendMessage(tab.id, {
-                        openReminder: true,
-                        goal: message.goal,
-                        url: message.hostname,
-                        closeModal: false
-                    })
-                }
-            })
-
-        })
-
-        chrome.storage.local.get(['activeWebsites'], (result) => {
-            let newArray = [];
-            result.activeWebsites.forEach(obj => {
-                if (obj.hostname !== hostname) {
-                    newArray.unshift(obj)
-                }
-            })
-            window.console.log('Website removed from active', newArray);
-            chrome.storage.local.set({activeWebsites: newArray});
-
-        });
-    }, message.reminderTime)
-
-});
+}

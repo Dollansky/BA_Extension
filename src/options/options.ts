@@ -1,5 +1,6 @@
 // TODO Layout Überschrift  remove functionality
 // TODO blacklist -> Object Blacklist: domain , intervention, default antworten
+// TODO Add Button for manual learn or freetime change;
 
 let blacklist: Array<string>;
 let previousGoals: Array<string>;
@@ -84,10 +85,13 @@ function newDomain() {
                 M.Modal.getInstance(document.getElementById("modal1")).close();
                 document.getElementById('newDomain').setAttribute('class', 'valid');
                 window.location.reload();
+            } else {
+                document.getElementsByTagName('input')[0].value = "Die Website ist bereits in der Liste.";
             }
         })
     } catch (e) {
         document.getElementById('newDomain').setAttribute('class', 'invalid');
+        document.getElementsByTagName('input')[0].value = "Bitte kopieren Sie die komplette Adresse der Website. Bsp. https://www.google.de/"
     }
 }
 
