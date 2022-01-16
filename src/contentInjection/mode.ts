@@ -35,27 +35,7 @@ function createShadowroot() {
     const shadowWrapper = document.createElement('div');
     shadowWrapper.id = 'modeShadow';
     var domain = new URL(location.href).hostname.toString();
-    if (domain === 'www.youtube.com') {
-        shadowWrapper.setAttribute('style', `
-                                 position: fixed;
-                                 z-index: 99999999999999999999999999999999999999999999999999999999999999 !important;
-                                 bottom: -999999;
-                                 top:3123;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;    
-                                `);
 
-    } else {
-        shadowWrapper.setAttribute('style', `
-                                bottom: 0;
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;    
-                                `);
-
-    }
 
     const shadowRoot = shadowWrapper.attachShadow({mode: 'open'});
     const materializeStyle = document.createElement('link');
@@ -76,7 +56,7 @@ function createShadowroot() {
 function createModal() {
     let containerModal = document.createElement('div');
     containerModal.className = "modal";
-    containerModal.setAttribute('style', 'width: 75% !important; height: 100% !important')
+    containerModal.setAttribute('style', 'width: 75% !important; height: 100% !important;')
     containerModal.id = "modeModal";
 
     let containerContent = document.createElement('div');

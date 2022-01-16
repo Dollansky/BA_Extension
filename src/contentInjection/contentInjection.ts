@@ -34,6 +34,7 @@ function getAndOpenModal() {
                 if (!modalInstance.isOpen) {
                     setTimeout(function () {
                             modalInstance.open();
+                            disableShortcuts();
                         },
                         500);
                 }
@@ -109,46 +110,22 @@ function setLatestAndPreviousGoals(goalInput: string, timeFrame: any) {
 
 }
 
-// TODO youtube sucks with input fix kinda workaround at least input stays focused when pressing shortcuts
-// youtube still recognises shortcuts even when input is focused
-onkeydown = function (ev) {
-    const shadowWrapper = document.getElementById('shadowWrapper');
-    if(currentDomain === 'www.youtube.com' && shadowWrapper !== null) {
-        // @ts-ignore
-        var modalInstance = getModalInstance();
-        if(modalInstance.isOpen) {
-            var goalInput = shadowWrapper.shadowRoot.getElementById('goalInput');
-            goalInput.focus();
-        }
+function disableShortcuts(){
+    window.addEventListener('keydown', stopPropagation, true);
+}
 
-    }
+function enableShortcuts(){
+    window.removeEventListener('keydown', stopPropagation, true)
+}
+
+function stopPropagation(e) {
+    e.stopPropagation();
 }
 
 
 function openInitialModal (domain: string ) {
     const shadowWrapper = document.createElement('div');
     shadowWrapper.id = 'shadowWrapper';
-    if(domain === 'www.youtube.com'){
-        shadowWrapper.setAttribute('style', `
-                                 position: fixed;
-                                 z-index: 99999999999999999999999999999999999999999999999999999999999999 !important;
-                                 bottom: -999999;
-                                 top:3123;
-                                left: 0;
-                                width: 0%;
-                                height: 0%;    
-                                `);
-
-    } else {
-        shadowWrapper.setAttribute('style', `
-                                bottom: 0;
-                                top: 0;
-                                left: 0;
-                                width: 0%;
-                                height: 0%;    
-                                `);
-
-    }
 
     const shadowRoot = shadowWrapper.attachShadow({mode: 'open'});
     const materializeStyle = document.createElement('link');
@@ -249,6 +226,9 @@ function openInitialModal (domain: string ) {
     var ModalInstance = M.Modal.init(shadowRoot.getElementById('modal1'),
         {
             dismissible: false,
+            onCloseEnd: () => {
+                enableShortcuts();
+            }
         });
 
 

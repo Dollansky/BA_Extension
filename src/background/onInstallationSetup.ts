@@ -1,5 +1,5 @@
 //@ts-ignore
-import {openOrCloseModeSelectInEveryTab} from "./exportedFunctions.ts";
+import {openOrCloseModeSelectInEveryTab, updateIconTimer} from "./exportedFunctions.ts";
 
 
 chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastDomain','activeWebsites','mode','dateWhenModeEnds'], (result) => {
@@ -67,5 +67,6 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome.runtime.onStartup.addListener(() => {
         chrome.storage.local.set({lastDomain: {domain: "StartUp"}});
         chrome.storage.local.set({activeWebsites: []});
+        updateIconTimer();
 }
 )

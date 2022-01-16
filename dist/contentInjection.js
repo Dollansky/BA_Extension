@@ -8,7 +8,7 @@
 
 // Webpack imports whole file this is a workaround
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkIfBaselineIsFinished = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = void 0;
+exports.calcIconTimer = exports.updateIconTimer = exports.checkIfBaselineIsFinished = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = void 0;
 function checkIfModeActive(dateWhenModeEnds) {
     window.console.log("check If Mode Active");
     window.console.log("dateWhenModeEnds:", dateWhenModeEnds);
@@ -38,6 +38,36 @@ function checkIfBaselineIsFinished(baselineFinished) {
     return (today >= baselineDate);
 }
 exports.checkIfBaselineIsFinished = checkIfBaselineIsFinished;
+function updateIconTimer() {
+    chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
+        let timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
+        if (timeTillModeEnds != null) {
+            chrome.browserAction.setBadgeText({ text: timeTillModeEnds });
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+                setTimeout(() => {
+                    updateIconTimer();
+                }, 1000);
+            }
+        }
+    });
+}
+exports.updateIconTimer = updateIconTimer;
+function calcIconTimer(dateWhenModeEnds) {
+    let timeLeftInSec = (dateWhenModeEnds - Date.now()) / 1000;
+    let hour = Math.floor(timeLeftInSec / 3600);
+    let minutes = Math.floor((timeLeftInSec % 3600) / 60);
+    let seconds = Math.floor(timeLeftInSec % 3600 % 60);
+    if (hour >= 1) {
+        return hour + `h`;
+    }
+    else if (minutes > 1) {
+        return minutes + 'min';
+    }
+    else {
+        return seconds + 'sec';
+    }
+}
+exports.calcIconTimer = calcIconTimer;
 
 
 /***/ })
@@ -105,6 +135,7 @@ function getAndOpenModal() {
                 if (!modalInstance.isOpen) {
                     setTimeout(function () {
                         modalInstance.open();
+                        disableShortcuts();
                     }, 500);
                 }
             }
@@ -165,42 +196,18 @@ function setLatestAndPreviousGoals(goalInput, timeFrame) {
         reminderTime: timeFrame * 60000
     });
 }
-// TODO youtube sucks with input fix kinda workaround at least input stays focused when pressing shortcuts
-// youtube still recognises shortcuts even when input is focused
-onkeydown = function (ev) {
-    const shadowWrapper = document.getElementById('shadowWrapper');
-    if (currentDomain === 'www.youtube.com' && shadowWrapper !== null) {
-        // @ts-ignore
-        var modalInstance = getModalInstance();
-        if (modalInstance.isOpen) {
-            var goalInput = shadowWrapper.shadowRoot.getElementById('goalInput');
-            goalInput.focus();
-        }
-    }
-};
+function disableShortcuts() {
+    window.addEventListener('keydown', stopPropagation, true);
+}
+function enableShortcuts() {
+    window.removeEventListener('keydown', stopPropagation, true);
+}
+function stopPropagation(e) {
+    e.stopPropagation();
+}
 function openInitialModal(domain) {
     const shadowWrapper = document.createElement('div');
     shadowWrapper.id = 'shadowWrapper';
-    if (domain === 'www.youtube.com') {
-        shadowWrapper.setAttribute('style', `
-                                 position: fixed;
-                                 z-index: 99999999999999999999999999999999999999999999999999999999999999 !important;
-                                 bottom: -999999;
-                                 top:3123;
-                                left: 0;
-                                width: 0%;
-                                height: 0%;    
-                                `);
-    }
-    else {
-        shadowWrapper.setAttribute('style', `
-                                bottom: 0;
-                                top: 0;
-                                left: 0;
-                                width: 0%;
-                                height: 0%;    
-                                `);
-    }
     const shadowRoot = shadowWrapper.attachShadow({ mode: 'open' });
     const materializeStyle = document.createElement('link');
     materializeStyle.type = "text/css";
@@ -290,6 +297,9 @@ function openInitialModal(domain) {
     document.body.appendChild(shadowWrapper);
     var ModalInstance = M.Modal.init(shadowRoot.getElementById('modal1'), {
         dismissible: false,
+        onCloseEnd: () => {
+            enableShortcuts();
+        }
     });
     var autocompleteInstance = M.Autocomplete.init(shadowRoot.querySelectorAll('.autocomplete'));
     var newAutocompleteData = {};

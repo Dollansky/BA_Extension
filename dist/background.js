@@ -8,7 +8,7 @@
 
 // Webpack imports whole file this is a workaround
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.checkIfBaselineIsFinished = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = void 0;
+exports.calcIconTimer = exports.updateIconTimer = exports.checkIfBaselineIsFinished = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = void 0;
 function checkIfModeActive(dateWhenModeEnds) {
     window.console.log("check If Mode Active");
     window.console.log("dateWhenModeEnds:", dateWhenModeEnds);
@@ -38,6 +38,36 @@ function checkIfBaselineIsFinished(baselineFinished) {
     return (today >= baselineDate);
 }
 exports.checkIfBaselineIsFinished = checkIfBaselineIsFinished;
+function updateIconTimer() {
+    chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
+        let timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
+        if (timeTillModeEnds != null) {
+            chrome.browserAction.setBadgeText({ text: timeTillModeEnds });
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+                setTimeout(() => {
+                    updateIconTimer();
+                }, 1000);
+            }
+        }
+    });
+}
+exports.updateIconTimer = updateIconTimer;
+function calcIconTimer(dateWhenModeEnds) {
+    let timeLeftInSec = (dateWhenModeEnds - Date.now()) / 1000;
+    let hour = Math.floor(timeLeftInSec / 3600);
+    let minutes = Math.floor((timeLeftInSec % 3600) / 60);
+    let seconds = Math.floor(timeLeftInSec % 3600 % 60);
+    if (hour >= 1) {
+        return hour + `h`;
+    }
+    else if (minutes > 1) {
+        return minutes + 'min';
+    }
+    else {
+        return seconds + 'sec';
+    }
+}
+exports.calcIconTimer = calcIconTimer;
 
 
 /***/ }),
