@@ -1,12 +1,11 @@
 // @ts-ignore
 import {TimeIntervall, TimeIntervallDto} from "../models/TimeIntervall.ts";
 // @ts-ignore
-import {checkIfModeActive, openOrCloseModeSelectInEveryTab} from "./exportedFunctions.ts";
+import {checkIfModeActive, openOrCloseModeSelectInEveryTab, serverUrl, participantId} from "./exportedFunctions.ts";
 
 let startTimeintervall: number = 0;
 let lastDomain = "";
-// const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create";
-const serverUrl = "nurdamitsgeht"
+
 chrome.storage.local.set({activeWebsites: []});
 var today = new Date();
 chrome.storage.local.set({baselineFinished: [today.getDay() + 7, today.getMonth(), today.getFullYear()]})
@@ -72,7 +71,7 @@ function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, startTime
 
 function sendIntervall(newTimeIntervallDto: TimeIntervallDto) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', serverUrl, true);
+    xhr.open('POST', serverUrl + "timeIntervall/create", true);
     xhr.setRequestHeader("Content-type", "application/json");
     xhr.onreadystatechange = apiHandler;
     console.log("TimeIntervall send:", newTimeIntervallDto);

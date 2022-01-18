@@ -6,9 +6,12 @@
 /***/ ((__unused_webpack_module, exports) => {
 
 
-// Webpack imports whole file this is a workaround
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.calcIconTimer = exports.updateIconTimer = exports.checkIfBaselineIsFinished = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = void 0;
+exports.setModeAndIcon = exports.calcIconTimer = exports.updateIconTimer = exports.checkIfBaselineIsFinished = exports.openModeSelectInCurrentTab = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = exports.serverUrl = exports.participantId = void 0;
+// Webpack imports whole file this is a workaround
+exports.participantId = 999;
+// export const serverUrl = "nurdamitsgeht";
+exports.serverUrl = "http://217.160.214.199:8080/api/";
 function checkIfModeActive(dateWhenModeEnds) {
     window.console.log("check If Mode Active");
     window.console.log("dateWhenModeEnds:", dateWhenModeEnds);
@@ -22,16 +25,24 @@ function checkIfModeActive(dateWhenModeEnds) {
     }
 }
 exports.checkIfModeActive = checkIfModeActive;
-function openOrCloseModeSelectInEveryTab(open) {
+function openOrCloseModeSelectInEveryTab(action) {
     chrome.tabs.query({}, function (tabs) {
         tabs.forEach(function (tab) {
             chrome.tabs.sendMessage(tab.id, {
-                action: open
+                action: action
             });
         });
     });
 }
 exports.openOrCloseModeSelectInEveryTab = openOrCloseModeSelectInEveryTab;
+function openModeSelectInCurrentTab() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (activeTab) {
+        chrome.tabs.sendMessage(activeTab[0].id, {
+            action: "Open Mode Select"
+        });
+    });
+}
+exports.openModeSelectInCurrentTab = openModeSelectInCurrentTab;
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[0] - 7, baselineFinished[1], baselineFinished[2]);
@@ -58,9 +69,9 @@ function calcIconTimer(dateWhenModeEnds) {
     let minutes = Math.floor((timeLeftInSec % 3600) / 60);
     let seconds = Math.floor(timeLeftInSec % 3600 % 60);
     if (hour >= 1) {
-        return hour + `h`;
+        return Math.round(timeLeftInSec / 3600) + `h`;
     }
-    else if (minutes > 1) {
+    else if (minutes >= 1) {
         return minutes + 'min';
     }
     else {
@@ -68,6 +79,17 @@ function calcIconTimer(dateWhenModeEnds) {
     }
 }
 exports.calcIconTimer = calcIconTimer;
+function setModeAndIcon() {
+    chrome.storage.local.get(['mode'], (result) => {
+        if (result.mode === false) {
+            chrome.browserAction.setIcon({ path: 'img/break.png' });
+        }
+        else if (result.mode === true) {
+            chrome.browserAction.setIcon({ path: 'img/work.png' });
+        }
+    });
+}
+exports.setModeAndIcon = setModeAndIcon;
 
 
 /***/ }),
@@ -144,8 +166,6 @@ const TimeIntervall_ts_1 = __webpack_require__(709);
 const exportedFunctions_ts_1 = __webpack_require__(144);
 let startTimeintervall = 0;
 let lastDomain = "";
-// const serverUrl = "http://217.160.214.199:8080/api/timeIntervall/create";
-const serverUrl = "nurdamitsgeht";
 chrome.storage.local.set({ activeWebsites: [] });
 var today = new Date();
 chrome.storage.local.set({ baselineFinished: [today.getDay() + 7, today.getMonth(), today.getFullYear()] });
@@ -200,7 +220,7 @@ function sendIntervallAndGetGoal(domain, blacklisted, startTime, mode, baselineF
 }
 function sendIntervall(newTimeIntervallDto) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', serverUrl, true);
+    xhr.open('POST', exportedFunctions_ts_1.serverUrl + "timeIntervall/create", true);
     xhr.setRequestHeader("Content-type", "application/json");
     xhr.onreadystatechange = apiHandler;
     console.log("TimeIntervall send:", newTimeIntervallDto);
@@ -210,7 +230,7 @@ function sendIntervall(newTimeIntervallDto) {
             xhr.setRequestHeader("Content-type", "application/json");
         }
         if (xhr.readyState === 4 && xhr.status === 200) {
-            xhr.open('POST', serverUrl, true);
+            xhr.open('POST', exportedFunctions_ts_1.serverUrl, true);
         }
     }
 }

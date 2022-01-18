@@ -6,9 +6,12 @@
 /***/ ((__unused_webpack_module, exports) => {
 
 
-// Webpack imports whole file this is a workaround
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.calcIconTimer = exports.updateIconTimer = exports.checkIfBaselineIsFinished = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = void 0;
+exports.setModeAndIcon = exports.calcIconTimer = exports.updateIconTimer = exports.checkIfBaselineIsFinished = exports.openModeSelectInCurrentTab = exports.openOrCloseModeSelectInEveryTab = exports.checkIfModeActive = exports.serverUrl = exports.participantId = void 0;
+// Webpack imports whole file this is a workaround
+exports.participantId = 999;
+// export const serverUrl = "nurdamitsgeht";
+exports.serverUrl = "http://217.160.214.199:8080/api/";
 function checkIfModeActive(dateWhenModeEnds) {
     window.console.log("check If Mode Active");
     window.console.log("dateWhenModeEnds:", dateWhenModeEnds);
@@ -22,16 +25,24 @@ function checkIfModeActive(dateWhenModeEnds) {
     }
 }
 exports.checkIfModeActive = checkIfModeActive;
-function openOrCloseModeSelectInEveryTab(open) {
+function openOrCloseModeSelectInEveryTab(action) {
     chrome.tabs.query({}, function (tabs) {
         tabs.forEach(function (tab) {
             chrome.tabs.sendMessage(tab.id, {
-                action: open
+                action: action
             });
         });
     });
 }
 exports.openOrCloseModeSelectInEveryTab = openOrCloseModeSelectInEveryTab;
+function openModeSelectInCurrentTab() {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (activeTab) {
+        chrome.tabs.sendMessage(activeTab[0].id, {
+            action: "Open Mode Select"
+        });
+    });
+}
+exports.openModeSelectInCurrentTab = openModeSelectInCurrentTab;
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[0] - 7, baselineFinished[1], baselineFinished[2]);
@@ -58,9 +69,9 @@ function calcIconTimer(dateWhenModeEnds) {
     let minutes = Math.floor((timeLeftInSec % 3600) / 60);
     let seconds = Math.floor(timeLeftInSec % 3600 % 60);
     if (hour >= 1) {
-        return hour + `h`;
+        return Math.round(timeLeftInSec / 3600) + `h`;
     }
-    else if (minutes > 1) {
+    else if (minutes >= 1) {
         return minutes + 'min';
     }
     else {
@@ -68,6 +79,17 @@ function calcIconTimer(dateWhenModeEnds) {
     }
 }
 exports.calcIconTimer = calcIconTimer;
+function setModeAndIcon() {
+    chrome.storage.local.get(['mode'], (result) => {
+        if (result.mode === false) {
+            chrome.browserAction.setIcon({ path: 'img/break.png' });
+        }
+        else if (result.mode === true) {
+            chrome.browserAction.setIcon({ path: 'img/work.png' });
+        }
+    });
+}
+exports.setModeAndIcon = setModeAndIcon;
 
 
 /***/ })
@@ -169,6 +191,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 chrome.runtime.onStartup.addListener(() => {
     chrome.storage.local.set({ lastDomain: { domain: "StartUp" } });
     chrome.storage.local.set({ activeWebsites: [] });
+    exportedFunctions_ts_1.setModeAndIcon();
     exportedFunctions_ts_1.updateIconTimer();
 });
 

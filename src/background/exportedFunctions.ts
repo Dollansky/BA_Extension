@@ -1,5 +1,8 @@
 // Webpack imports whole file this is a workaround
+export var participantId = 999;
+// export const serverUrl = "nurdamitsgeht";
 
+export const serverUrl = "http://217.160.214.199:8080/api/";
 
 export function checkIfModeActive(dateWhenModeEnds) {
     window.console.log("check If Mode Active");
@@ -13,14 +16,24 @@ export function checkIfModeActive(dateWhenModeEnds) {
     }
 }
 
-export function openOrCloseModeSelectInEveryTab(open) {
+export function openOrCloseModeSelectInEveryTab(action) {
     chrome.tabs.query({}, function (tabs) {
         tabs.forEach(function (tab) {
             chrome.tabs.sendMessage(tab.id, {
-                action: open
+                action: action
             })
         })
     });
+}
+
+export function openModeSelectInCurrentTab() {
+    chrome.tabs.query({active:true, currentWindow:true},
+        function (activeTab) {
+            chrome.tabs.sendMessage(activeTab[0].id, {
+                action: "Open Mode Select"
+            })
+
+        });
 }
 
 export function checkIfBaselineIsFinished(baselineFinished: { [p: string]: any }) {
@@ -50,10 +63,20 @@ export function calcIconTimer(dateWhenModeEnds) {
     let minutes = Math.floor((timeLeftInSec % 3600) / 60);
     let seconds = Math.floor(timeLeftInSec % 3600 % 60);
     if(hour >= 1){
-        return hour+`h`;
-    } else if (minutes > 1) {
+        return Math.round(timeLeftInSec/3600)+`h`;
+    } else if (minutes >= 1) {
         return minutes+'min';
     } else {
         return seconds +'sec';
     }
+}
+
+export function setModeAndIcon() {
+    chrome.storage.local.get(['mode'],(result)=> {
+        if (result.mode === false) {
+            chrome.browserAction.setIcon({path: 'img/break.png'});
+        } else if (result.mode === true) {
+            chrome.browserAction.setIcon({path: 'img/work.png'});
+        }
+    })
 }

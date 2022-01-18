@@ -1,14 +1,15 @@
 // TODO WEBPACK IMPROTING WHOLE FILE INSTEAD OF JUSTN THE FUNCTION
 //@ts-ignore
-import {checkIfModeActive, openOrCloseModeSelectInEveryTab, updateIconTimer} from "./exportedFunctions.ts";
+import {checkIfModeActive, openOrCloseModeSelectInEveryTab, updateIconTimer, setModeAndIcon, participantId, serverUrl} from "./exportedFunctions.ts";
+//@ts-ignore
+import {ModeDto} from "../models/ModeDto.ts";
+
 
 
 
 setInterval(() => {
     chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
-        let modeActive: boolean = checkIfModeActive(result.dateWhenModeEnds);
-        window.console.log("mode Active ? ", modeActive);
-        if(modeActive) {
+        if(checkIfModeActive(result.dateWhenModeEnds)) {
             updateIconTimer();
         }
     })
@@ -20,15 +21,38 @@ chrome.browserAction.onClicked.addListener(() => {
 })
 
 
+
+
 chrome.runtime.onMessage.addListener((message => {
     if (message.action == "Set Mode Selection") {
         let dateWhenModeEnds = calcDateWhenModeEnds(message.time);
-        setModeAndIcon(message.mode);
+        chrome.storage.local.set({mode: message.mode});
         chrome.storage.local.set({dateWhenModeEnds: dateWhenModeEnds});
+        setModeAndIcon();
         updateIconTimer();
         openOrCloseModeSelectInEveryTab("Close Mode Select");
+        sendModeAndDateWhenModeEnds(message.mode, dateWhenModeEnds, (message.time - dateWhenModeEnds) );
     }
 }))
+
+function sendModeAndDateWhenModeEnds(mode, dateWhenModeEnds, duration) {
+        var newModeDto: ModeDto = new ModeDto(participantId, mode, dateWhenModeEnds,duration)
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', serverUrl + "modeDto/create", true);
+        xhr.setRequestHeader("Content-type", "application/json");
+        xhr.onreadystatechange = apiHandler;
+
+        xhr.send(JSON.stringify(newModeDto));
+        window.console.log("updated Mode", newModeDto);
+        function apiHandler(xhr) {
+            if (xhr.readyState === 1) {
+                xhr.setRequestHeader("Content-type", "application/json");
+            }
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                xhr.open('POST', serverUrl, true);
+            }
+        }
+}
 
 
 function calcDateWhenModeEnds(time) {
@@ -48,15 +72,5 @@ function calcDateWhenModeEnds(time) {
 }
 
 
-
-
-function setModeAndIcon(mode) {
-    chrome.storage.local.set({mode: mode});
-    if (mode === false) {
-        chrome.browserAction.setIcon({path: 'img/break.png'});
-    } else if (mode === true) {
-        chrome.browserAction.setIcon({path: 'img/work.png'});
-    }
-}
 
 

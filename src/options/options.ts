@@ -1,6 +1,9 @@
-// TODO Layout Überschrift  remove functionality
-// TODO blacklist -> Object Blacklist: domain , intervention, default antworten
-// TODO Add Button for manual learn or freetime change;
+
+
+//@ts-ignore
+import {participantId, serverUrl} from "../background/exportedFunctions.ts";
+//@ts-ignore
+import {BlackList} from "../models/BlackList.ts";
 
 let blacklist: Array<string>;
 let previousGoals: Array<string>;
@@ -68,6 +71,7 @@ function removeDomain(domain: string) {
     chrome.storage.local.get(['blacklist'], (result) => {
         const newBlacklist: Array<string> = result.blacklist;
         chrome.storage.local.set({blacklist: newBlacklist.filter(entry => entry !== domain)})
+        sendUpdatedBlacklist(newBlacklist);
         window.location.reload();
     })
 }
@@ -84,6 +88,7 @@ function newDomain() {
                 chrome.storage.local.set({blacklist: newBlacklist});
                 M.Modal.getInstance(document.getElementById("modal1")).close();
                 document.getElementById('newDomain').setAttribute('class', 'valid');
+                sendUpdatedBlacklist(newBlacklist);
                 window.location.reload();
             } else {
                 document.getElementsByTagName('input')[0].value = "Die Website ist bereits in der Liste.";
@@ -95,3 +100,21 @@ function newDomain() {
     }
 }
 
+function sendUpdatedBlacklist(blacklist) {
+    var newBlackList: BlackList = new BlackList(participantId,blacklist, Date.now())
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', serverUrl +"blacklist/create", true);
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.onreadystatechange = apiHandler;
+
+    xhr.send(JSON.stringify(newBlackList));
+    window.console.log("updatedBlacklist:", newBlackList);
+    function apiHandler(xhr) {
+        if (xhr.readyState === 1) {
+            xhr.setRequestHeader("Content-type", "application/json");
+        }
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            xhr.open('POST', serverUrl, true);
+        }
+    }
+}
