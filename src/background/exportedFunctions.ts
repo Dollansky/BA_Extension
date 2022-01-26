@@ -1,13 +1,11 @@
 // Webpack imports whole file this is a workaround
-export var participantId = 999;
+
 // export const serverUrl = "nurdamitsgeht";
 
 export const serverUrl = "http://217.160.214.199:8080/api/";
 
 export function checkIfModeActive(dateWhenModeEnds) {
-    window.console.log("check If Mode Active");
-    window.console.log("dateWhenModeEnds:", dateWhenModeEnds);
-    if (dateWhenModeEnds < Date.now() || dateWhenModeEnds == undefined ) {
+    if (dateWhenModeEnds < Date.now() || dateWhenModeEnds == undefined) {
         chrome.storage.local.set({mode: null});
         openOrCloseModeSelectInEveryTab("Open Mode Select");
         return false;
@@ -27,7 +25,7 @@ export function openOrCloseModeSelectInEveryTab(action) {
 }
 
 export function openModeSelectInCurrentTab() {
-    chrome.tabs.query({active:true, currentWindow:true},
+    chrome.tabs.query({active: true, currentWindow: true},
         function (activeTab) {
             chrome.tabs.sendMessage(activeTab[0].id, {
                 action: "Open Mode Select"
@@ -62,17 +60,17 @@ export function calcIconTimer(dateWhenModeEnds) {
     let hour = Math.floor(timeLeftInSec / 3600);
     let minutes = Math.floor((timeLeftInSec % 3600) / 60);
     let seconds = Math.floor(timeLeftInSec % 3600 % 60);
-    if(hour >= 1){
-        return Math.round(timeLeftInSec/3600)+`h`;
+    if (hour >= 1) {
+        return Math.round(timeLeftInSec / 3600) + `h`;
     } else if (minutes >= 1) {
-        return minutes+'min';
+        return minutes + 'min';
     } else {
-        return seconds +'sec';
+        return seconds + 'sec';
     }
 }
 
-export function setModeAndIcon() {
-    chrome.storage.local.get(['mode'],(result)=> {
+export function setIcon() {
+    chrome.storage.local.get(['mode'], (result) => {
         if (result.mode === false) {
             chrome.browserAction.setIcon({path: 'img/break.png'});
         } else if (result.mode === true) {
@@ -80,3 +78,24 @@ export function setModeAndIcon() {
         }
     })
 }
+
+export function fetchParticipantId() {
+    chrome.tabs.query({active: true, currentWindow: true},
+        function (activeTab) {
+            chrome.tabs.sendMessage(activeTab[0].id, {
+                action: "Create Participant"
+            })
+        });
+}
+
+
+export function getParticipantId() {
+    chrome.storage.local.get(['participantId'], (result) => {
+        if (result.participantId == undefined) {
+            fetchParticipantId();
+        } else {
+            return result.participantId;
+        }
+    })
+}
+

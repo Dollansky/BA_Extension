@@ -1,7 +1,7 @@
 // @ts-ignore
 import {TimeIntervall, TimeIntervallDto} from "../models/TimeIntervall.ts";
 // @ts-ignore
-import {checkIfModeActive, openOrCloseModeSelectInEveryTab, serverUrl, participantId} from "./exportedFunctions.ts";
+import {checkIfModeActive, openOrCloseModeSelectInEveryTab, serverUrl, participantId, getParticipantId, fetchParticipantId} from "./exportedFunctions.ts";
 
 let startTimeintervall: number = 0;
 let lastDomain = "";
@@ -18,16 +18,21 @@ setInterval(function () {
     })
 }, 1000)
 
-
-
+// TODO remove this
+chrome.storage.local.set({participantId: undefined});
 // TODO FIX EVERY result.baselineFinished-7 remove -7
 function checkDomain(website: string, tabId: number) {
     try {
         const currentDomain: string = new URL(website).hostname;
         if (currentDomain !== lastDomain) {
-            chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished'], (result) => {
+            chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished','participantId'], (result) => {
+
                 if(result.mode === null){
                     openOrCloseModeSelectInEveryTab("Open Mode Select");
+                }
+                if(result.participantId == undefined) {
+
+                    fetchParticipantId();
                 }
                 var today = new Date();
                 // TODO REMOVE THE -7 AND SWITCH FOR
@@ -40,7 +45,7 @@ function checkDomain(website: string, tabId: number) {
                     chrome.tabs.sendMessage(tabId, {domain: currentDomain, action: "Open Intervention Modal"});
                 }
 
-                sendIntervallAndGetGoal(lastDomain, result.blacklist.includes(lastDomain), startTimeintervall, result.mode, intervene);
+                sendIntervallAndGetGoal(lastDomain, result.blacklist.includes(lastDomain), startTimeintervall, result.mode, intervene, result.participantId);
 
                 startTimeintervall = new Date().getTime();
                 lastDomain = currentDomain;
@@ -51,7 +56,7 @@ function checkDomain(website: string, tabId: number) {
 }
 
 
-function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean) {
+function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean, participantId) {
 
     let timeSpend = (new Date().getTime() - startTime) / 1000;
     var latestGoal = '';
@@ -62,7 +67,7 @@ function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, startTime
             }
 
         })
-        let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(999, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
+        let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(participantId, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
         if (domain !== "") {
             sendIntervall(newTimeIntervallDto);
         }
@@ -74,15 +79,18 @@ function sendIntervall(newTimeIntervallDto: TimeIntervallDto) {
     xhr.open('POST', serverUrl + "timeIntervall/create", true);
     xhr.setRequestHeader("Content-type", "application/json");
     xhr.onreadystatechange = apiHandler;
-    console.log("TimeIntervall send:", newTimeIntervallDto);
+
     xhr.send(JSON.stringify(newTimeIntervallDto));
 
-    function apiHandler() {
+
+    function apiHandler(xhr) {
         if (xhr.readyState === 1) {
             xhr.setRequestHeader("Content-type", "application/json");
+
         }
         if (xhr.readyState === 4 && xhr.status === 200) {
             xhr.open('POST', serverUrl, true);
+
         }
     }
 }

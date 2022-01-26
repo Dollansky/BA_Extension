@@ -1,17 +1,14 @@
 {
-  "name": "Goal Setting Extension",
-  "version": "1.0.0",
-  "description": "somethingsomething",
+  "name": "Goal-Setting-Intervention Extension",
+  "version": "0.0.1",
+  "description": "Chrome Extension for Bachelor Thesis Study",
   "manifest_version": 2,
   "permissions": [
     "tabs",
     "storage",
     "bookmarks",
     "idle",
-    "alarms",
-    "http://localhost:8080/**/**/*",
-    "http://localhost:8081/**/**/*",
-    "chrome://favicon/*"
+    "alarms"
   ],
   "background": {
     "scripts": [
@@ -25,6 +22,7 @@
       "js": [
         "materialize/materialize.js",
         "contentInjection.js",
+        "createParticipant.js",
         "mode.js"
       ],
       "matches": [
@@ -39,6 +37,7 @@
   },
   "web_accessible_resources": [
     "/contentInjection/modal.html",
+    "/createParticipant/createParticipant.html",
     "/materialize/materialize.js",
     "/materialize/materialize.min.css",
     "/img/wecker.png",

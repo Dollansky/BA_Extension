@@ -15,7 +15,7 @@ function getAndOpenModal() {
 
         var isBaselineFinished = checkIfBaselineIsFinished(result.baselineFinished);
         var isAlreadyActive: boolean  = checkIfAlreadyActive(result, currentDomain);
-        window.console.log(isAlreadyActive);
+
 
         // TODO deactivated to make testing easier
         // if (result.blacklist.includes(currentDomain) && isBaselineFinished && result.mode && !isAlreadyActive) {
@@ -82,12 +82,12 @@ chrome.runtime.onMessage.addListener((message) => {
 function openReminder(goal) {
     const shadowWrapper = document.getElementById('shadowWrapper');
     shadowWrapper.shadowRoot.getElementById('goalSpan').innerText = goal;
-    var modalInstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'));
-    modalInstance.options.dismissible = false;
-    modalInstance.open();
+    var reminderInstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'));
+    reminderInstance.options.dismissible = false;
+    reminderInstance.open();
     // Reminder can be dismissed after 1 sek
     setTimeout(() => {
-            modalInstance.options.dismissible = true
+            reminderInstance.options.dismissible = true
         }
         , 1000)
 }
@@ -112,14 +112,19 @@ function setLatestAndPreviousGoals(goalInput: string, timeFrame: any) {
 
 function disableShortcuts(){
     window.addEventListener('keydown', stopPropagation, true);
+    window.addEventListener('keypress',stopPropagation,true);
+    window.addEventListener('keyup',stopPropagation,true);
 }
 
 function enableShortcuts(){
     window.removeEventListener('keydown', stopPropagation, true)
+    window.removeEventListener('keypress',stopPropagation,true);
+    window.removeEventListener('keyup',stopPropagation,true);
 }
 
 function stopPropagation(e) {
     e.stopPropagation();
+    e.stopImmediatePropagation();
 }
 
 
