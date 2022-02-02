@@ -1,10 +1,10 @@
 export class ModeDto {
-    participantId: number;
+    participantId: string;
     mode: boolean;
     dateWhenModeEnds: number;
     duration: number;
     constructor(
-        participantId: number,
+        participantId: string,
         mode: boolean,
         dateWhenModeEnds: number,
         duration: number,

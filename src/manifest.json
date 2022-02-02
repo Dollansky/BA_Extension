@@ -1,8 +1,29 @@
 {
+  "manifest_version": 3,
   "name": "Goal-Setting-Intervention Extension",
   "version": "0.0.1",
   "description": "Chrome Extension for Bachelor Thesis Study",
-  "manifest_version": 2,
+
+
+  "action": {
+    "name": "Change Mode",
+    "default_popup": "/popup/popup.html"
+  },
+
+  "content_scripts": [
+    {
+      "js": [
+        "contentInjection.js",
+        "createParticipant.js",
+        "mode.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+
   "permissions": [
     "tabs",
     "storage",
@@ -10,39 +31,35 @@
     "idle",
     "alarms"
   ],
+
   "background": {
-    "scripts": [
-      "background.js",
-      "modeSelection.js",
-      "onInstallationSetup.js"
-    ]
+    "service_worker": "serviceWorker.js"
   },
-  "content_scripts": [
+
+
+  "web_accessible_resources": [
     {
-      "js": [
-        "materialize/materialize.js",
-        "contentInjection.js",
-        "createParticipant.js",
-        "mode.js"
+      "resources": [
+        "/contentInjection/modal.html",
+        "/createParticipant/createParticipant.html",
+        "/materialize/materialize.js",
+        "/materialize/materialize.min.css",
+        "/modeSelection.js",
+        "/onInstallationSetup.js",
+        "/exportedFunctions.js",
+        "/background.js",
+        "/img/**/*",
+        "/img/*"
       ],
       "matches": [
-        "*://*/*"
-      ],
-      "run_at": "document_end"
+        "<all_urls>"
+      ]
     }
   ],
-  "browser_action": {
-    "name": "Change Mode",
-    "default_popup": "/popup/popup.html"
+  "options_ui": {
+    "page": "/options/options.html",
+    "browser_style": true
   },
-  "web_accessible_resources": [
-    "/contentInjection/modal.html",
-    "/createParticipant/createParticipant.html",
-    "/materialize/materialize.js",
-    "/materialize/materialize.min.css",
-    "/img/wecker.png",
-    "/img/coffee-cup.png",
-    "/img/laptop.png"
-  ],
   "options_page": "/options/options.html"
 }
+

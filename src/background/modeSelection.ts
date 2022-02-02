@@ -1,74 +1,54 @@
 // TODO WEBPACK IMPROTING WHOLE FILE INSTEAD OF JUSTN THE FUNCTION
 //@ts-ignore
-import {checkIfModeActive, openOrCloseModeSelectInEveryTab, updateIconTimer, setIcon,serverUrl, getParticipantId} from "./exportedFunctions.ts";
+import {
+    checkIfModeActive,
+    sendMessageToEveryTab,
+    updateIconTimer,
+    setIcon,
+    serverUrl,
+    getParticipantId
+} from "./exportedFunctions";
 //@ts-ignore
 import {ModeDto} from "../models/ModeDto.ts";
 
 
-setInterval(() => {
-    setIcon();
-    chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
-        if(checkIfModeActive(result.dateWhenModeEnds)) {
-            updateIconTimer();
-        }
-    })
-}, 6000) // TODO back to 30000
-
-
-chrome.browserAction.onClicked.addListener(() => {
-    openOrCloseModeSelectInEveryTab("Open Mode Select")
-})
-
-
-
-
-chrome.runtime.onMessage.addListener((message => {
-    if (message.action == "Set Mode Selection") {
-        let dateWhenModeEnds = calcDateWhenModeEnds(message.time);
-        if(dateWhenModeEnds != null){
-            chrome.storage.local.set({mode: message.mode});
-            chrome.storage.local.set({dateWhenModeEnds: dateWhenModeEnds});
-
-            setIcon();
-            updateIconTimer();
-
-            openOrCloseModeSelectInEveryTab("Close Mode Select");
-
-            sendModeDtoAndGetParticipantId(message.mode, dateWhenModeEnds,(dateWhenModeEnds - Date.now()) );
-        }
-
+export function handleModeChange(mode: boolean) {
+    if (mode) {
+        sendMessageToEveryTab("Open Intervention Modal");
+    } else {
+        sendMessageToEveryTab("Close Intervention Modal");
     }
-}))
 
-function sendModeDto(mode, dateWhenModeEnds, duration, participantId) {
-        var newModeDto: ModeDto = new ModeDto(participantId, mode, dateWhenModeEnds,duration)
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', serverUrl + "modeDto/create", true);
-        xhr.setRequestHeader("Content-type", "application/json");
-        xhr.onreadystatechange = apiHandler;
-
-        xhr.send(JSON.stringify(newModeDto));
-
-        function apiHandler(xhr) {
-            if (xhr.readyState === 1) {
-                xhr.setRequestHeader("Content-type", "application/json");
-            }
-            if (xhr.readyState === 4 && xhr.status === 200) {
-                xhr.open('POST', serverUrl, true);
-            }
-        }
 }
 
-function sendModeDtoAndGetParticipantId(mode,dateWhenModeEnds,duration){
+export function sendModeDto(mode: boolean, dateWhenModeEnds: any, duration: any, participantId: string) {
+    var newModeDto: ModeDto = new ModeDto(participantId, mode, dateWhenModeEnds, duration)
+    fetch(serverUrl + "modeDto/create", {
+        method: 'post',
+        headers: {
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify(newModeDto)
+    })
+        .then()
+        .then(function (data) {
+
+        })
+        .catch(function (error) {
+
+        });
+}
+
+export function sendModeDtoAndGetParticipantId(mode: any, dateWhenModeEnds: any, duration: any) {
     chrome.storage.local.get(['participantId'], (result) => {
-       sendModeDto(mode,dateWhenModeEnds,duration, result.participantId)
+        sendModeDto(mode, dateWhenModeEnds, duration, result.participantId)
     });
 
 }
 
 
-function calcDateWhenModeEnds(time) {
-    if(time != null){
+export function calcDateWhenModeEnds(time: any) {
+    if (time != null) {
         var currTime = new Date;
         var hour = currTime.getHours();
         var minutes = currTime.getMinutes();
@@ -83,5 +63,5 @@ function calcDateWhenModeEnds(time) {
         var dateWhenModeEnds: Date = new Date(currTime.getFullYear(), currTime.getMonth(), day, setHour, setMinute);
         return dateWhenModeEnds.getTime();
     }
-
 }
+

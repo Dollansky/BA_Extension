@@ -25,14 +25,14 @@ export class TimeIntervall {
     }
 }
 export class TimeIntervallDto {
-    participantId: number;
+    participantId: string;
     blacklisted: boolean;
     timeSpend: number;
     baselineFinished: boolean;
     mode: boolean;
     goal?: string;
 
-    constructor(participantId: number,
+    constructor(participantId: string,
                 mode: boolean,
                 blacklisted: boolean,
                 timeSpend: number,

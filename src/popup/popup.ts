@@ -1,5 +1,5 @@
 //@ts-ignore
-import {openModeSelectInCurrentTab, openOrCloseModeSelectInEveryTab} from "../background/exportedFunctions.ts";
+import {browserUrl, openModeSelectInCurrentTab, sendMessageToEveryTab} from "../background/exportedFunctions.ts";
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -11,6 +11,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 function openBlacklist(){
-    chrome.tabs.create({url: 'chrome-extension://' + chrome.runtime.id + '/options/options.html'});
+    chrome.tabs.create({url: browserUrl + 'options/options.html'});
 }
 

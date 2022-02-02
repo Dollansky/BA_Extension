@@ -1,30 +1,32 @@
 //@ts-ignore
 import html from "../popup/modeSelection.html";
+import {browserUrl} from "../background/exportedFunctions";
 
 
 
 chrome.runtime.onMessage.addListener((message => {
-    if (message.action == "Open Mode Select" && getModeShadow() == null) {
-        createModal();
-        openModal();
 
+    if (message.action == "Open Mode Select" && getModeShadow() == null) {
+        createModeModal();
+        openModeModal();
     } else if (message.action == "Open Mode Select" && !isModalOpen()) {
-        openModal();
+        openModeModal();
 
     } else if (message.action == "Close Mode Select") {
         closeModal();
     }
 }))
 
-function createModal() {
+function createModeModal() {
+
     createShadowroot();
     document.getElementById('modeShadow').shadowRoot.innerHTML += (html);
     initializeModalAndTimePicker();
     functionalityAndImgForButtons();
-    openModal();
+    openModeModal();
 }
 
-var mode;
+var mode: any;
 var time;
 
 function initializeModalAndTimePicker() {
@@ -52,9 +54,10 @@ function isModalOpen() {
     return M.Modal.getInstance(getModeShadow().shadowRoot.getElementById('modeModal')).isOpen;
 }
 
-function openModal() {
+function openModeModal() {
     var ModalInstance = M.Modal.getInstance(getModeShadow().shadowRoot.getElementById('modeModal'));
     ModalInstance.open();
+    window.scrollTo(0, 0);
 }
 
 function createShadowroot() {
@@ -65,13 +68,13 @@ function createShadowroot() {
     const materializeStyle = document.createElement('link');
     materializeStyle.type = "text/css";
     materializeStyle.media = "screen,projection";
-    const extensionUrl = 'chrome-extension://' + chrome.runtime.id
+
     materializeStyle.setAttribute('rel', 'stylesheet');
-    materializeStyle.setAttribute('href', extensionUrl + '/materialize/materialize.min.css');
+    materializeStyle.setAttribute('href', browserUrl+ 'materialize/materialize.min.css');
 
     const materializeJs = document.createElement('script');
     materializeJs.type = "text/javascript";
-    materializeJs.src = extensionUrl + '/materialize/materialize.js';
+    materializeJs.src = browserUrl + 'materialize/materialize.js';
     shadowRoot.append(materializeStyle, materializeJs, createTimeSelect());
     document.body.appendChild(shadowWrapper);
 }
@@ -95,8 +98,10 @@ function functionalityAndImgForButtons() {
 function addPictograms(workButton: HTMLButtonElement, freetimeButton: HTMLButtonElement) {
     let workPictogram = document.createElement('img');
     let freetimePictogram = document.createElement('img');
-    workPictogram.src = "chrome-extension://" + chrome.runtime.id + "/img/laptop.png";
-    freetimePictogram.src = "chrome-extension://" + chrome.runtime.id + "/img/coffee-cup.png";
+    workPictogram.style.setProperty('style',"width: 30vw;")
+
+    workPictogram.src =  browserUrl +  "img/laptop.png";
+    freetimePictogram.src =  browserUrl +  "img/coffee-cup.png";
 
     workButton.append(workPictogram);
     freetimeButton.append(freetimePictogram);

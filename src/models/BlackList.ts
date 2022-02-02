@@ -1,9 +1,9 @@
 export class BlackList {
-    participantId: number;
+    participantId: string;
     blacklist: Array<String>;
     updated: number;
     constructor(
-        participantId: number,
+        participantId: string,
         blacklist: Array<String>,
         updated: number,
     ) {

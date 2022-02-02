@@ -13,10 +13,6 @@ module.exports = {
         //     console.log(obj);
         //     return obj
     }, {}),
-    output: {
-        filename: "[name].js",
-        path: path.resolve(__dirname, "dist"),
-    },
     module: {
         rules: [
             // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader"
@@ -24,6 +20,9 @@ module.exports = {
             {test: /\.css?$/, loader: "css-loader"},
             {test: /\.html$/i, loader: "html-loader"}
         ]
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js', '.css'],
     },
     plugins: [
         new CopyPlugin({
@@ -43,5 +42,9 @@ module.exports = {
         splitChunks: {
             chunks: "all",
         },
+    },
+    output: {
+        filename: "[name].js",
+        path: path.resolve(__dirname, "dist"),
     },
 }

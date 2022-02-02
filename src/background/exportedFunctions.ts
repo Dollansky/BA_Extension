@@ -4,17 +4,22 @@
 
 export const serverUrl = "http://217.160.214.199:8080/api/";
 
-export function checkIfModeActive(dateWhenModeEnds) {
+export const browserUrl = chrome.runtime.getURL("");
+
+
+
+export function checkIfModeActive(dateWhenModeEnds: any) {
     if (dateWhenModeEnds < Date.now() || dateWhenModeEnds == undefined) {
         chrome.storage.local.set({mode: null});
-        openOrCloseModeSelectInEveryTab("Open Mode Select");
+        sendMessageToEveryTab("Open Mode Select");
         return false;
     } else {
         return true;
     }
 }
 
-export function openOrCloseModeSelectInEveryTab(action) {
+export function sendMessageToEveryTab(action: string) {
+
     chrome.tabs.query({}, function (tabs) {
         tabs.forEach(function (tab) {
             chrome.tabs.sendMessage(tab.id, {
@@ -25,6 +30,7 @@ export function openOrCloseModeSelectInEveryTab(action) {
 }
 
 export function openModeSelectInCurrentTab() {
+
     chrome.tabs.query({active: true, currentWindow: true},
         function (activeTab) {
             chrome.tabs.sendMessage(activeTab[0].id, {
@@ -36,25 +42,30 @@ export function openModeSelectInCurrentTab() {
 
 export function checkIfBaselineIsFinished(baselineFinished: { [p: string]: any }) {
     var today = new Date();
-    var baselineDate = new Date(baselineFinished[0] - 7, baselineFinished[1], baselineFinished[2]);
-    return (today >= baselineDate);
+    var baselineDate = new Date(baselineFinished[2] , baselineFinished[1], baselineFinished[0]);
+    // TODO uncomment and delete return true;
+    return true;
+    // return (today >= baselineDate);
 }
 
 export function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
         let timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.browserAction.setBadgeText({text: timeTillModeEnds});
+            chrome.action.setBadgeText({text: timeTillModeEnds});
             if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
                 setTimeout(() => {
                     updateIconTimer()
                 }, 1000)
             }
         }
+        if(timeTillModeEnds == "0sec"){
+            openModeSelectInCurrentTab();
+        }
     })
 }
 
-export function calcIconTimer(dateWhenModeEnds) {
+export function calcIconTimer(dateWhenModeEnds: any) {
     let timeLeftInSec = (dateWhenModeEnds - Date.now()) / 1000;
 
     let hour = Math.floor(timeLeftInSec / 3600);
@@ -72,9 +83,9 @@ export function calcIconTimer(dateWhenModeEnds) {
 export function setIcon() {
     chrome.storage.local.get(['mode'], (result) => {
         if (result.mode === false) {
-            chrome.browserAction.setIcon({path: 'img/break.png'});
+            chrome.action.setIcon({path: 'img/break.png'});
         } else if (result.mode === true) {
-            chrome.browserAction.setIcon({path: 'img/work.png'});
+            chrome.action.setIcon({path: 'img/work.png'});
         }
     })
 }
@@ -99,3 +110,43 @@ export function getParticipantId() {
     })
 }
 
+export function onInstalledDo() {
+    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId'], (result) => {
+        if (result.blacklist == undefined) {
+            const blacklist: Array<string> =  ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
+            chrome.storage.local.set({blacklist: blacklist});
+            chrome.action.setIcon({path: 'img/work.png'});
+            chrome.bookmarks.create({
+                parentId: '1',
+                title: 'Options for Goal Setting Extension',
+                url: browserUrl + 'options/options.html'
+            });
+        }
+        if (result.baselineFinished === undefined) {
+
+            var today = new Date();
+            chrome.storage.local.set({baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth(), today.getUTCFullYear()]});
+
+        }
+        if (result.previousGoals == undefined) {
+            const previousGoals: Array<String> = ['Kurzes Video schauen'];
+            chrome.storage.local.set({previousGoals: previousGoals});
+        }
+        if (result.lastDomain == undefined) {
+            chrome.storage.local.set({lastDomain: {domain: "Installation Time"}})
+        }
+        if (result.activeWebsites == undefined) {
+            chrome.storage.local.set({activeWebsites: []});
+        }
+        if (result.mode == undefined) {
+            sendMessageToEveryTab("Open Mode Select");
+        }
+        if (result.dateWhenModeEnds == undefined) {
+            chrome.storage.local.set({dateWhenModeEnds: 0})
+        }
+
+        if (result.participantId == undefined) {
+            fetchParticipantId();
+        }
+    })
+}

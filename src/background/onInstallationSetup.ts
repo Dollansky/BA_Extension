@@ -1,17 +1,17 @@
 //@ts-ignore
-import {fetchParticipantId, openOrCloseModeSelectInEveryTab, serverUrl, setIcon, updateIconTimer} from "./exportedFunctions.ts";
+import {browserUrl, fetchParticipantId, sendMessageToEveryTab, serverUrl, setIcon, updateIconTimer} from "./exportedFunctions.ts";
 //@ts-ignore
 import {Participant} from "../createParticipant/Participant.ts";
-
+chrome.storage.local.set({baselineFinished: undefined});
 
 chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastDomain','activeWebsites','mode','dateWhenModeEnds'], (result) => {
     if (result.blacklist == undefined) {
-        const blacklist: Array<string> = ["www.crunchyroll.com", "www.reddit.com", "www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "9gag.com",'www.twitch.tv'];
+        const blacklist: Array<string> = ["www.crunchyroll.com", "www.reddit.com", "www.instagram.com", "www.facebook.com", "www.netflix.com", "9gag.com",'www.twitch.tv'];
         chrome.storage.local.set({blacklist: blacklist});
-        chrome.browserAction.setIcon({path: 'img/work.png'});
-        chrome.bookmarks.create({ parentId: '1', title: 'Options for Goal Setting Extension', url: 'chrome-extension://' + chrome.runtime.id + '/options/options.html' });
+        chrome.action.setIcon({path: 'img/work.png'});
+        chrome.bookmarks.create({ parentId: '1', title: 'Options for Goal Setting Extension', url: browserUrl + 'options/options.html' });
     }
-    if (result.baselineFinished === undefined) {
+    if (result.baselineFinished === undefined || result.baselineFinished == null) {
         var today = new Date();
         chrome.storage.local.set({baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth() , today.getUTCFullYear()]});
     }
@@ -26,47 +26,53 @@ chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastD
         chrome.storage.local.set({activeWebsites: []});
     }
     if(result.mode == undefined){
-        openOrCloseModeSelectInEveryTab("Open Mode Select")
+        sendMessageToEveryTab("Open Mode Select");
     }
     if(result.dateWhenModeEnds == undefined){
         chrome.storage.local.set( {dateWhenModeEnds: 0})
     }
 })
 
-chrome.runtime.onInstalled.addListener((details) => {
-    chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastDomain','activeWebsites','mode','dateWhenModeEnds','participantId'], (result) => {
+export function onInstalledDo() {
+    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId'], (result) => {
         if (result.blacklist == undefined) {
-            const blacklist: Array<string> = ["www.crunchyroll.com", "www.reddit.com", "www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "9gag.com",'www.twitch.tv'];
+            const blacklist: Array<string> = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({blacklist: blacklist});
-            chrome.browserAction.setIcon({path: 'img/work.png'});
-            chrome.bookmarks.create({ parentId: '1', title: 'Options for Goal Setting Extension', url: 'chrome-extension://' + chrome.runtime.id + '/options/options.html' });
+            chrome.action.setIcon({path: 'img/work.png'});
+            chrome.bookmarks.create({
+                parentId: '1',
+                title: 'Options for Goal Setting Extension',
+                url: browserUrl + 'options/options.html'
+            });
         }
         if (result.baselineFinished === undefined) {
+
             var today = new Date();
-            chrome.storage.local.set({baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth() , today.getUTCFullYear()]});
+            chrome.storage.local.set({baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth(), today.getUTCFullYear()]});
+
         }
-        if(result.previousGoals == undefined){
-            const previousGoals: Array<String> = ['Pause', 'Kurzes Video schauen'];
+        if (result.previousGoals == undefined) {
+            const previousGoals: Array<String> = ['Kurzes Video schauen'];
             chrome.storage.local.set({previousGoals: previousGoals});
         }
-        if(result.lastDomain == undefined){
+        if (result.lastDomain == undefined) {
             chrome.storage.local.set({lastDomain: {domain: "Installation Time"}})
         }
-        if(result.activeWebsites == undefined){
+        if (result.activeWebsites == undefined) {
             chrome.storage.local.set({activeWebsites: []});
         }
-        if(result.mode == undefined){
-            openOrCloseModeSelectInEveryTab("Open Mode Select")
+        if (result.mode == undefined) {
+            sendMessageToEveryTab("Open Mode Select");
         }
-        if(result.dateWhenModeEnds == undefined){
-            chrome.storage.local.set( {dateWhenModeEnds: 0})
+        if (result.dateWhenModeEnds == undefined) {
+            chrome.storage.local.set({dateWhenModeEnds: 0})
         }
 
-        if(result.participantId == undefined) {
+        if (result.participantId == undefined) {
             fetchParticipantId();
         }
     })
-})
+}
 
 
 
@@ -80,45 +86,42 @@ chrome.runtime.onStartup.addListener(() => {
 
 chrome.runtime.onMessage.addListener((message) => {
     if(message.action == "Send Participant"){
-        checkIfParticipantIdSet(message.name);
+        checkIfParticipantIdSet(message.name, message.email);
+    }
+    if(message.action == "Close Participant"){
+        sendMessageToEveryTab("Close Participant Modal")
     }
 })
 
-function createParticipant(name: string) {
+async function createParticipant(name: string, email: string) {
 
-    let participant: Participant = new Participant(name);
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', serverUrl + "participant/create", true);
-    xhr.setRequestHeader("Content-type", "application/json");
-    xhr.onreadystatechange = apiHandler;
-    console.log("TimeIntervall send:", name);
-    xhr.send(JSON.stringify(participant));
+    let participant: Participant = new Participant(name, email);
+    fetch(serverUrl + "participant/create", {
+        method: 'post',
+        headers: {
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify(participant)
+    }).then(response=> response.text())
+        .then(data => {
+            setParticipantId(data)
+        })
+        .catch(function (error) {
 
-    function apiHandler(xhr) {
-        if(xhr.currentTarget.response !== undefined) {
-            try {
-                let participantId = JSON.parse(xhr.currentTarget.response)['id'];
-                setParticipantId(participantId);
-            } catch (e) {
-            }
-        }
-        if (xhr.readyState === 1) {
-            xhr.setRequestHeader("Content-type", "application/json");
-        }
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            xhr.open('POST', serverUrl, true);
-        }
-    }
+        });
+
+
 }
 
 function setParticipantId(participantId: string){
     chrome.storage.local.set({participantId: participantId});
 }
 
-function checkIfParticipantIdSet(name) {
+function checkIfParticipantIdSet(name: string, email: string) {
     chrome.storage.local.get(['participantId'], (result) => {
-        if(result.participantId == undefined){
-            createParticipant(name);
+        if(result.participantId == undefined || result.participantId == ""){
+            createParticipant(name, email);
         };
     })
 }
+

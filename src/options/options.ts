@@ -4,6 +4,7 @@
 import {getParticipantId, participantId, serverUrl} from "../background/exportedFunctions.ts";
 //@ts-ignore
 import {BlackList} from "../models/BlackList.ts";
+import * as events from "events";
 
 let blacklist: Array<string>;
 let previousGoals: Array<string>;
@@ -30,6 +31,11 @@ chrome.storage.local.get(['blacklist', 'previousGoals'], (result) => {
     const submit = document.getElementById('submitDomain');
     submit.addEventListener('click', function () {
         newDomain();
+    })
+    document.getElementById('newDomain').addEventListener('keyup', function (event) {
+        if (event.code === 'Enter') {
+           newDomain();
+        }
     })
 
 
@@ -63,7 +69,7 @@ function newDomain() {
     updateBlacklist(currentDomain);
 }
 
-function updateBlacklist(currentDomain) {
+function updateBlacklist(currentDomain: string) {
 
     chrome.storage.local.get(['blacklist','participantId'], (result) => {
 
@@ -83,30 +89,30 @@ function updateBlacklist(currentDomain) {
     })
 }
 
-function sendUpdatedBlacklist(blacklist, participantId) {
+function sendUpdatedBlacklist(blacklist: Array<string>, participantId: string) {
     var newBlackList: BlackList = new BlackList(participantId,blacklist, Date.now())
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', serverUrl +"blacklist/create", true);
-    xhr.setRequestHeader("Content-type", "application/json");
-    xhr.onreadystatechange = apiHandler;
 
-    xhr.send(JSON.stringify(newBlackList));
+    fetch(serverUrl + "blacklist/create", {
+        method: 'post',
+        headers: {
+            "Content-type": "application/json"
+        },
+        body: JSON.stringify(newBlackList)
+    })
+        .then()
+        .then(function (data) {
 
-    function apiHandler(xhr) {
-        if (xhr.readyState === 1) {
-            xhr.setRequestHeader("Content-type", "application/json");
-        }
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            xhr.open('POST', serverUrl, true);
-        }
-    }
+        })
+        .catch(function (error) {
+
+        });
 }
 
 function openToast(message: string){
     M.toast({html: message})
 }
 
-function removeInTable(domain) {
+function removeInTable(domain : string) {
     document.getElementById(domain).hidden = true;
 }
 

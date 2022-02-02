@@ -1,10 +1,21 @@
+//{
+//  "compilerOptions": {
+//    "outDir": "./dist",
+//    "allowJs": true,
+//    "target": "es2019",
+//    "module": "commonJS",
+//    "allowSyntheticDefaultImports": true
+//  },
+//  "include": ["./src/**/*"]
+//}
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "./dist/",
+    "noImplicitAny": true,
+    "module": "es6",
+    "target": "es5",
+    "jsx": "react",
     "allowJs": true,
-    "target": "es2019",
-    "module": "commonJS",
-    "allowSyntheticDefaultImports": true
-  },
-  "include": ["./src/**/*"]
+    "moduleResolution": "node"
+  }
 }

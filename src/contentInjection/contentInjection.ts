@@ -1,26 +1,27 @@
 //@ts-ignore
-import {checkIfBaselineIsFinished} from "../background/exportedFunctions.ts";
+import {browserUrl, browserUrl2, checkIfBaselineIsFinished} from "../background/exportedFunctions.ts";
+
 
 var currentDomain = new URL(location.href).hostname;
 
 chrome.storage.local.get(['blacklist'], result => {
-    if(result.blacklist.includes(currentDomain)){
+    if (result.blacklist.includes(currentDomain)) {
+
         openInitialModal(currentDomain)
     }
 })
 
+
 function getAndOpenModal() {
     chrome.storage.local.get(['blacklist', 'baselineFinished', 'mode', 'activeWebsites'], (result) => {
         const currentDomain = new URL(location.href).hostname;
-
+;
         var isBaselineFinished = checkIfBaselineIsFinished(result.baselineFinished);
-        var isAlreadyActive: boolean  = checkIfAlreadyActive(result, currentDomain);
 
 
-        // TODO deactivated to make testing easier
-        // if (result.blacklist.includes(currentDomain) && isBaselineFinished && result.mode && !isAlreadyActive) {
-        if (result.blacklist.includes(currentDomain) && !isAlreadyActive && result.mode === true) {
+        if (result.blacklist.includes(currentDomain) && isBaselineFinished && result.mode && !checkIfAlreadyActive(result, currentDomain)) {
             const shadowWrapper = document.getElementById('shadowWrapper');
+
             if ((shadowWrapper === null)) {
                 openInitialModal(currentDomain);
             }
@@ -32,6 +33,7 @@ function getAndOpenModal() {
 
                 // timeout prevents site from scrolling
                 if (!modalInstance.isOpen) {
+                    //window.console.
                     setTimeout(function () {
                             modalInstance.open();
                             disableShortcuts();
@@ -44,13 +46,14 @@ function getAndOpenModal() {
 }
 
 
-function checkIfAlreadyActive (result: { [p: string]: any }, currentDomain: string) {
+function checkIfAlreadyActive(result: { [p: string]: any }, currentDomain: string) {
     let isActive: boolean = false;
-    result.activeWebsites.forEach(obj => {
+    result.activeWebsites.forEach((obj: any) => {
         if (obj.hostname === currentDomain) {
             isActive = true;
         }
     });
+
     return isActive;
 }
 
@@ -66,20 +69,24 @@ function getModalInstance() {
 // For tab navigation
 chrome.runtime.onMessage.addListener((message) => {
 
-    if (message.action == "Open Reminder Modal"  && (message.url === new URL(location.href).hostname)) {
+    if (message.action == "Open Reminder Modal" && (message.url === new URL(location.href).hostname)) {
         openReminder(message.goal)
     }
-    if (message.action == "Close Intervention Modal") {
+    else if (message.action == "Close Intervention Modal") {
         // @ts-ignore
         document.getElementById('shadowWrapper').shadowRoot.getElementById('goalInput').value = '';
         getModalInstance().close();
 
-    } else if(message.action == "Open Intervention Modal") {
+    }
+    else if (message.action == "Open Intervention Modal") {
         getAndOpenModal();
+    }
+    else if (message.action == "Close Reminder Modal") {
+        getReminderInstance().close();
     }
 });
 
-function openReminder(goal) {
+function openReminder(goal: string) {
     const shadowWrapper = document.getElementById('shadowWrapper');
     shadowWrapper.shadowRoot.getElementById('goalSpan').innerText = goal;
     var reminderInstance = M.Modal.getInstance(shadowWrapper.shadowRoot.getElementById('reminderModal'));
@@ -110,25 +117,24 @@ function setLatestAndPreviousGoals(goalInput: string, timeFrame: any) {
 
 }
 
-function disableShortcuts(){
+function disableShortcuts() {
     window.addEventListener('keydown', stopPropagation, true);
-    window.addEventListener('keypress',stopPropagation,true);
-    window.addEventListener('keyup',stopPropagation,true);
+    window.addEventListener('keypress', stopPropagation, true);
+
 }
 
-function enableShortcuts(){
+function enableShortcuts() {
     window.removeEventListener('keydown', stopPropagation, true)
-    window.removeEventListener('keypress',stopPropagation,true);
-    window.removeEventListener('keyup',stopPropagation,true);
+    window.removeEventListener('keypress', stopPropagation, true);
 }
 
-function stopPropagation(e) {
+
+function stopPropagation(e: any) {
     e.stopPropagation();
     e.stopImmediatePropagation();
 }
 
-
-function openInitialModal (domain: string ) {
+function openInitialModal(domain: string) {
     const shadowWrapper = document.createElement('div');
     shadowWrapper.id = 'shadowWrapper';
 
@@ -136,13 +142,13 @@ function openInitialModal (domain: string ) {
     const materializeStyle = document.createElement('link');
     materializeStyle.type = "text/css";
     materializeStyle.media = "screen,projection";
-    const extensionUrl = 'chrome-extension://' + chrome.runtime.id
     materializeStyle.setAttribute('rel', 'stylesheet');
-    materializeStyle.setAttribute('href', extensionUrl + '/materialize/materialize.min.css');
+    materializeStyle.setAttribute('href', browserUrl + 'materialize/materialize.min.css');
+
 
     const materializeJs = document.createElement('script');
     materializeJs.type = "text/javascript";
-    materializeJs.src = extensionUrl + '/materialize/materialize.js';
+    materializeJs.src = browserUrl + 'materialize/materialize.js';
     shadowRoot.append(materializeStyle, materializeJs);
 
     let row1 = document.createElement('div');
@@ -225,6 +231,10 @@ function openInitialModal (domain: string ) {
     containerContent.append(containerHeader, inputDiv, selectDiv);
     containerModal.append(containerContent);
     shadowRoot.appendChild(containerModal);
+
+
+
+
     document.body.appendChild(shadowWrapper);
 
 
@@ -243,7 +253,7 @@ function openInitialModal (domain: string ) {
 
     chrome.storage.local.get(['previousGoals'], (result) => {
         let previousGoals = result.previousGoals;
-        previousGoals.forEach(entry => {
+        previousGoals.forEach((entry: string) => {
             newAutocompleteData[entry] = null;
         })
         autocompleteInstance[0].updateData(newAutocompleteData);
@@ -252,26 +262,25 @@ function openInitialModal (domain: string ) {
         setLatestAndPreviousGoals(goalInput.value, timeSelector.value);
         ModalInstance.close();
     }, false);
+
     goalInput.addEventListener('keyup', function (event) {
-        goalInput.focus();
         if (event.code === 'Enter') {
             setLatestAndPreviousGoals(goalInput.value, timeSelector.value);
             ModalInstance.close();
         }
     })
-    goalInput.addEventListener('keydown', function (event) {
-        goalInput.focus();
-        if(domain === 'www.youtube.com' && event.code === 'Space' ) {
-            goalInput.value = goalInput.value + ' ';
-        }
-    })
-
 
     // Opening Modal scrolls Page to the bottom, following line prevents that from happening
     window.scrollTo(0, 0);
 
+    createReminder(shadowRoot);
 
-    // Goal Reminder
+    getAndOpenModal();
+
+}
+
+
+function createReminder(shadowRoot: ShadowRoot) {
     let reminderModal = document.createElement('div');
     reminderModal.className = "modal";
     reminderModal.setAttribute('style', 'width: 75% !important')
@@ -279,11 +288,12 @@ function openInitialModal (domain: string ) {
     reminderModal.tabIndex = 0;
 
     let imgAlarm = document.createElement('img');
-    imgAlarm.src = extensionUrl + "/img/wecker.png";
+    let randomIcon: string = Math.floor(Math.random() * (5 - 1 + 1) + 1).toString();
+    imgAlarm.src = browserUrl + "img/reminder/" + randomIcon + ".png";
 
     let goalSpan = document.createElement('span');
+    goalSpan.setAttribute('style', "font-size:40px; margin-left: 40px")
     goalSpan.id = 'goalSpan';
-    goalSpan.style.setProperty("font-size", "50px")
     goalSpan.innerText = 'template';
 
     let reminderRow1 = document.createElement('div');
@@ -302,7 +312,17 @@ function openInitialModal (domain: string ) {
         dismissible: true,
         onCloseEnd: () => {
             getAndOpenModal();
+            closeReminderInOtherTabs();
         }
     });
-    getAndOpenModal();
+
+
+
+}
+
+function closeReminderInOtherTabs(){
+    chrome.runtime.sendMessage({
+        action: "Close Reminder in every Tab",
+        hostname: currentDomain
+    })
 }
