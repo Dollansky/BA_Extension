@@ -240,8 +240,6 @@ var startTimeintervall = 0;
 var lastDomain = "";
 var participantId = "";
 chrome.storage.local.set({ activeWebsites: [] });
-//TODO Remove
-chrome.storage.local.set({ participantId: "" });
 function checkForParticipantId() {
     chrome.storage.local.get(['participantId'], function (result) {
         console.log("pId", participantId);

@@ -4,9 +4,13 @@ import {checkIfModeActive, sendMessageToEveryTab, setIcon, updateIconTimer} from
 import {calcDateWhenModeEnds, handleModeChange, sendModeDtoAndGetParticipantId} from "./modeSelection";
 import {sendGoalAndSaveId} from "./goalHandler";
 
-// TODO remove
-chrome.storage.local.set({participantId: ""});
 
+
+//TODO Remove
+chrome.runtime.onStartup.addListener(() => {
+
+    chrome.storage.local.set({participantId: ""});
+})
 
 chrome.runtime.onInstalled.addListener((details) => {
     onInstalledDo();

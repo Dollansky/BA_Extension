@@ -23,8 +23,6 @@ var startTimeintervall = 0;
 var lastDomain = "";
 var participantId = "";
 chrome.storage.local.set({ activeWebsites: [] });
-//TODO Remove
-chrome.storage.local.set({ participantId: "" });
 function checkForParticipantId() {
     chrome.storage.local.get(['participantId'], function (result) {
         console.log("pId", participantId);
@@ -718,8 +716,10 @@ var __webpack_exports__ = {};
 
 
 
-// TODO remove
-chrome.storage.local.set({ participantId: "" });
+//TODO Remove
+chrome.runtime.onStartup.addListener(function () {
+    chrome.storage.local.set({ participantId: "" });
+});
 chrome.runtime.onInstalled.addListener(function (details) {
     (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .onInstalledDo */ .n)();
 });
