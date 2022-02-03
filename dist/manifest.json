@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "Goal-Setting-Intervention Extension",
+  "version": "0.0.1",
+  "description": "Chrome Extension for Bachelor Thesis Study",
+
+
+  "action": {
+    "name": "Change Mode",
+    "default_popup": "/popup/popup.html"
+  },
+
+  "content_scripts": [
+    {
+      "js": [
+        "contentInjection.js",
+        "createParticipant.js",
+        "mode.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_end"
+    }
+  ],
+
+  "permissions": [
+    "tabs",
+    "storage",
+    "bookmarks",
+    "idle",
+    "alarms"
+  ],
+
+  "background": {
+    "service_worker": "serviceWorker.js"
+  },
+
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/contentInjection/modal.html",
+        "/createParticipant/createParticipant.html",
+        "/materialize/materialize.js",
+        "/materialize/materialize.min.css",
+        "/modeSelection.js",
+        "/onInstallationSetup.js",
+        "/exportedFunctions.js",
+        "/background.js",
+        "/img/**/*",
+        "/img/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "options_ui": {
+    "page": "/options/options.html",
+    "browser_style": true
+  },
+  "options_page": "/options/options.html"
+}
+
