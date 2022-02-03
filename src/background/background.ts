@@ -3,7 +3,7 @@ import {
     sendMessageToEveryTab,
     serverUrl,
     fetchParticipantId,
-    checkIfBaselineIsFinished, getParticipantId,
+    checkIfBaselineIsFinished,
 } from "./exportedFunctions";
 
 if ('serviceWorker' in navigator) {
@@ -23,6 +23,7 @@ chrome.storage.local.set({participantId: ""});
 function checkForParticipantId() {
 
     chrome.storage.local.get(['participantId'], (result) => {
+        console.log("pId",participantId);
             participantId = result.participantId;
             if(participantId == null || participantId == ""){
                 fetchParticipantId();
