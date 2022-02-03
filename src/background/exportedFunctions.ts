@@ -4,6 +4,7 @@
 
 export const serverUrl = "http://217.160.214.199:8080/api/";
 
+
 export const browserUrl = chrome.runtime.getURL("");
 
 

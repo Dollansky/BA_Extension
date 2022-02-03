@@ -96,19 +96,21 @@ chrome.runtime.onMessage.addListener((message) => {
 async function createParticipant(name: string, email: string) {
 
     let participant: Participant = new Participant(name, email);
-    fetch(serverUrl + "participant/create", {
-        method: 'post',
-        headers: {
-            "Content-type": "application/json"
-        },
-        body: JSON.stringify(participant)
-    }).then(response=> response.text())
-        .then(data => {
-            setParticipantId(data)
-        })
-        .catch(function (error) {
-
-        });
+    chrome.storage.local.set({participantId: "Usability Study"});
+    // TODO remove uncomment
+    // fetch(serverUrl + "participant/create", {
+    //     method: 'post',
+    //     headers: {
+    //         "Content-type": "application/json"
+    //     },
+    //     body: JSON.stringify(participant)
+    // }).then(response=> response.text())
+    //     .then(data => {
+    //         setParticipantId(data)
+    //     })
+    //     .catch(function (error) {
+    //
+    //     });
 
 
 }

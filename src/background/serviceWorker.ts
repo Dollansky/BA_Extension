@@ -2,12 +2,10 @@ import {onInstalledDo} from "./onInstallationSetup";
 import {checkDomain, openOrCloseModalOnEveryTab, updateActiveWebsitesAndSetTimeoutForReminder} from "./background";
 import {checkIfModeActive, sendMessageToEveryTab, setIcon, updateIconTimer} from "./exportedFunctions";
 import {calcDateWhenModeEnds, handleModeChange, sendModeDtoAndGetParticipantId} from "./modeSelection";
+import {sendGoalAndSaveId} from "./goalHandler";
 
-
-//
-// if ('serviceWorker' in navigator) {
-//     navigator.serviceWorker.register('/background.js');
-// }
+// TODO remove
+chrome.storage.local.set({participantId: ""});
 
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -20,9 +18,16 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         let tabId = sender.tab.id;
         let hostname = message.hostname;
         updateActiveWebsitesAndSetTimeoutForReminder(hostname, reminderExpiration, message, tabId);
+        sendGoalAndSaveId(message.goal,hostname,message.reminderTime / 1000, message.reason)
+
     }
     if (message.action == "Close Reminder in every Tab") {
         openOrCloseModalOnEveryTab(message.hostname, "", "Close Reminder Modal")
+    }
+
+    if (message.action == "Set Mode Selection") {
+        console.log("SetModeSElect");
+        setModeSelection(message);
     }
 
 
@@ -33,12 +38,6 @@ chrome.action.onClicked.addListener(() => {
 })
 
 
-chrome.runtime.onMessage.addListener((message => {
-    if (message.action == "Set Mode Selection") {
-        console.log("SetModeSElect");
-        setModeSelection(message);
-    }
-}))
 
 function setModeSelection(message: any) {
     let dateWhenModeEnds = calcDateWhenModeEnds(message.time);

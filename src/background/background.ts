@@ -3,7 +3,7 @@ import {
     sendMessageToEveryTab,
     serverUrl,
     fetchParticipantId,
-    checkIfBaselineIsFinished,
+    checkIfBaselineIsFinished, getParticipantId,
 } from "./exportedFunctions";
 
 if ('serviceWorker' in navigator) {
@@ -12,19 +12,33 @@ if ('serviceWorker' in navigator) {
 //
 let startTimeintervall: number = 0;
 let lastDomain = "";
+let participantId = "";
 
 
 chrome.storage.local.set({activeWebsites: []});
 
 //TODO Remove
-chrome.storage.local.set({participantId: "sd"});
+chrome.storage.local.set({participantId: ""});
+
+function checkForParticipantId() {
+
+    chrome.storage.local.get(['participantId'], (result) => {
+            participantId = result.participantId;
+            if(participantId == null || participantId == ""){
+                fetchParticipantId();
+
+            }
+    })
+
+}
 
 export function checkDomain(website: string, tabId: number) {
     try {
+        checkForParticipantId();
         const currentDomain: string = new URL(website).hostname;
         if (currentDomain !== lastDomain) {
             chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished','participantId', 'lastDomain'], (result) => {
-                checkIfCriticalDataIsUndefined(result);
+                checkIfModeIsUndefined(result);
 
                 var baselineFinished: boolean = checkIfBaselineIsFinished(result.baselineFinished);
 
@@ -43,13 +57,9 @@ export function checkDomain(website: string, tabId: number) {
     }
 }
 
-export function checkIfCriticalDataIsUndefined(result: { [p: string]: any }) {
+export function checkIfModeIsUndefined(result: { [p: string]: any }) {
     if (result.mode === undefined) {
         sendMessageToEveryTab("Open Mode Select");
-    }
-    if (result.participantId == undefined || result.participantId == "") {
-
-        fetchParticipantId();
     }
 }
 
@@ -57,17 +67,21 @@ export function checkIfCriticalDataIsUndefined(result: { [p: string]: any }) {
 export function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean, participantId: string) {
 
     let timeSpend = (new Date().getTime() - startTime) / 1000;
-    var latestGoal = '';
+    var latestGoal: string = null;
+    let reasonToStay: string = null;
+    let goalId: string = null;
     chrome.storage.local.get(['activeWebsites'], (result) => {
         result.activeWebsites.forEach((obj : any) => {
             if (obj.hostname === domain) {
+                goalId = obj.goalId;
                 latestGoal = obj.goal;
+                reasonToStay = obj.reason;
             }
+        });
 
-        })
-        let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(participantId, mode, blacklisted, timeSpend, baselineFinished, latestGoal);
+        let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(participantId, mode,domain, blacklisted, timeSpend, baselineFinished,  startTime, new Date().getTime(),goalId, latestGoal,reasonToStay);
+        console.log(newTimeIntervallDto);
         if (domain !== "") {
-
             sendIntervall(newTimeIntervallDto);
         }
     });
@@ -89,6 +103,7 @@ export function sendIntervall(newTimeIntervallDto: TimeIntervallDto) {
         .catch(function (error) {
 
         });
+
 
 }
 
@@ -125,7 +140,7 @@ export function addNewActiveWebsite(hostname: string, reminderExpiration: number
             hostname: hostname,
             reminderRunning: reminderExpiration,
             goal: message.goal,
-            tabId: tabId
+            reason: message.reason
         });
         chrome.storage.local.set({activeWebsites: result.activeWebsites});
     })
