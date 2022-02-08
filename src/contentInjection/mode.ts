@@ -1,5 +1,5 @@
 //@ts-ignore
-import html from "../popup/modeSelection.html";
+import html from "../html/modeSelection.html";
 import {browserUrl} from "../background/exportedFunctions";
 
 

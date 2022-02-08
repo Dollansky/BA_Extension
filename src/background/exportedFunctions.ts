@@ -31,7 +31,6 @@ export function sendMessageToEveryTab(action: string) {
 }
 
 export function openModeSelectInCurrentTab() {
-
     chrome.tabs.query({active: true, currentWindow: true},
         function (activeTab) {
             chrome.tabs.sendMessage(activeTab[0].id, {
@@ -44,17 +43,18 @@ export function openModeSelectInCurrentTab() {
 export function checkIfBaselineIsFinished(baselineFinished: { [p: string]: any }) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2] , baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+
+    return (today >= baselineDate);
 }
 
 export function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
         let timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({text: timeTillModeEnds});
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if(timeTillModeEnds[0] != "-"){
+                chrome.action.setBadgeText({text: timeTillModeEnds});
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(() => {
                     updateIconTimer()
                 }, 1000)
@@ -101,7 +101,7 @@ export function fetchParticipantId() {
 }
 
 
-export function getParticipantId() {
+export function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], (result) => {
         if (result.participantId == undefined) {
             fetchParticipantId();

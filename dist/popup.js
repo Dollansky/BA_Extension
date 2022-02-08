@@ -9,7 +9,7 @@
 /* harmony export */   "Kk": () => (/* binding */ browserUrl),
 /* harmony export */   "c1": () => (/* binding */ openModeSelectInCurrentTab)
 /* harmony export */ });
-/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -43,16 +43,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -95,7 +95,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -194,16 +194,61 @@ function onInstalledDo() {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
+/* unused harmony export getTimeAndUpdatePopup */
 /* harmony import */ var _background_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
 //@ts-ignore
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('openBlacklist').addEventListener('click', openBlacklist);
     document.getElementById('selectMode').addEventListener('click', _background_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .openModeSelectInCurrentTab */ .c1);
+    getTimeAndUpdatePopup();
 });
 function openBlacklist() {
     chrome.tabs.create({ url: _background_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
 }
+function getTimeRemaining(endtime) {
+    var t = endtime - Date.now();
+    var minutes = Math.floor((t / 1000 / 60) % 60);
+    var hours = Math.floor((t / (1000 * 60 * 60)) % 24);
+    return {
+        'total': t,
+        'hours': hours,
+        'minutes': minutes,
+    };
+}
+function initializeClock(id, endtime) {
+    var clock = document.getElementById(id);
+    var hoursSpan = clock.querySelector('.hours');
+    var minutesSpan = clock.querySelector('.minutes');
+    function updateClock() {
+        var t = getTimeRemaining(endtime);
+        hoursSpan.innerHTML = ('0' + t.hours).slice(-2);
+        minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
+        if (t.total <= 0) {
+            clearInterval(timeinterval);
+        }
+    }
+    updateClock();
+    var timeinterval = setInterval(updateClock, 1000);
+}
+function setCurrentMode(mode) {
+    var img = document.getElementsByTagName('img')[0];
+    if (mode === false) {
+        img.src = _background_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'img/breakPopup.png';
+    }
+    else if (mode === true) {
+        img.src = _background_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'img/laptopPopup.png';
+    }
+}
+function getTimeAndUpdatePopup() {
+    chrome.storage.local.get(['mode', 'dateWhenModeEnds'], function (result) {
+        setCurrentMode(result.mode);
+        initializeClock('clockdiv', new Date(result.dateWhenModeEnds));
+    });
+}
+window.onload = function () {
+    getTimeAndUpdatePopup();
+};
 
 })();
 

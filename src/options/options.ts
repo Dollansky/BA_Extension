@@ -1,56 +1,62 @@
-
-
 //@ts-ignore
-import {getParticipantId, participantId, serverUrl} from "../background/exportedFunctions.ts";
+import {checkIfParticipantIdIsSet, participantId, serverUrl} from "../background/exportedFunctions.ts";
 //@ts-ignore
 import {BlackList} from "../models/BlackList.ts";
-import * as events from "events";
+
+
 
 let blacklist: Array<string>;
 let previousGoals: Array<string>;
 
-document.getElementById('helpButton').addEventListener("click", () =>{
-    document.getElementById('helpBox').className = "col s3 card blue-grey darken-1 scale-transition scale-in";
-    document.getElementById('helpButton').hidden = true;
-})
 
-chrome.storage.local.get(['blacklist', 'previousGoals'], (result) => {
+setUpBlacklist()
 
-    let listContainer = document.getElementById('blacklist')
-    let listElement = document.createElement('ul');
-    listContainer.appendChild(listElement);
-    blacklist = result.blacklist;
-    previousGoals = result.previousGoals;
+function openHelp() {
+    let insModal = M.Modal.getInstance(document.getElementById('instructionsModal'));
+    insModal.open();
+}
 
+function setUpBlacklist() {
+    chrome.storage.local.get(['blacklist', 'previousGoals', 'instructionCheck'], (result) => {
 
-    blacklist.forEach(function (domain) {
-        addToTable(domain);
-    })
-
-
-    const submit = document.getElementById('submitDomain');
-    submit.addEventListener('click', function () {
-        newDomain();
-    })
-    document.getElementById('newDomain').addEventListener('keyup', function (event) {
-        if (event.code === 'Enter') {
-           newDomain();
-        }
-    })
+        let listContainer = document.getElementById('blacklist')
+        let listElement = document.createElement('ul');
+        listContainer.appendChild(listElement);
+        blacklist = result.blacklist;
+        previousGoals = result.previousGoals;
 
 
+        blacklist.forEach(function (domain) {
+            addToTable(domain);
+        })
 
-    chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+
+        const submit = document.getElementById('submitDomain');
+        submit.addEventListener('click', function () {
+            newDomain();
+        })
+        document.getElementById('newDomain').addEventListener('keyup', function (event) {
+            if (event.code === 'Enter') {
+                newDomain();
+            }
+        })
+
         M.AutoInit(document.body);
-    });
-})
+
+
+        document.getElementById('helpButton').addEventListener("click", () => {
+            openHelp();
+        });
+
+    })
+}
 
 
 function removeDomain(domain: string) {
-    chrome.storage.local.get(['blacklist','participantId'], (result) => {
+    chrome.storage.local.get(['blacklist', 'participantId'], (result) => {
         const newBlacklist: Array<string> = result.blacklist;
         chrome.storage.local.set({blacklist: newBlacklist.filter(entry => entry !== domain)})
-        sendUpdatedBlacklist(newBlacklist,result.participantId);
+        sendUpdatedBlacklist(newBlacklist, result.participantId);
         openToast(domain + ' wurde aus der Blacklist entfernt');
         removeInTable(domain);
     })
@@ -71,10 +77,12 @@ function newDomain() {
 
 function updateBlacklist(currentDomain: string) {
 
-    chrome.storage.local.get(['blacklist','participantId'], (result) => {
+    chrome.storage.local.get(['blacklist', 'participantId'], (result) => {
 
         const newBlacklist: Array<string> = result.blacklist;
-        if (newBlacklist.filter(entry => entry === currentDomain).length === 0) {
+        if (newBlacklist.filter(entry => entry === currentDomain).length === 0 && currentDomain != "") {
+            //@ts-ignore
+            document.getElementById('newDomain').value = "";
             newBlacklist.unshift(currentDomain)
             chrome.storage.local.set({blacklist: newBlacklist});
             M.Modal.getInstance(document.getElementById("modal1")).close();
@@ -82,7 +90,7 @@ function updateBlacklist(currentDomain: string) {
             sendUpdatedBlacklist(newBlacklist, result.participantId);
             openToast(currentDomain + ' wurde der Blacklist hinzugefügt');
             addToTable(currentDomain);
-        } else {
+        } else if (currentDomain != "") {
             M.Modal.getInstance(document.getElementById("modal1")).close();
             openToast("Die Website ist bereits in der Liste");
         }
@@ -90,7 +98,7 @@ function updateBlacklist(currentDomain: string) {
 }
 
 function sendUpdatedBlacklist(blacklist: Array<string>, participantId: string) {
-    var newBlackList: BlackList = new BlackList(participantId,blacklist, Date.now())
+    var newBlackList: BlackList = new BlackList(participantId, blacklist, Date.now())
 
     fetch(serverUrl + "blacklist/create", {
         method: 'post',
@@ -108,18 +116,17 @@ function sendUpdatedBlacklist(blacklist: Array<string>, participantId: string) {
         });
 }
 
-function openToast(message: string){
+function openToast(message: string) {
     M.toast({html: message})
 }
 
-function removeInTable(domain : string) {
+function removeInTable(domain: string) {
     document.getElementById(domain).hidden = true;
 }
 
 function addToTable(domain: string) {
     let tableRow = document.createElement('tr');
     tableRow.id = domain;
-
 
 
     // Icon create
@@ -154,3 +161,11 @@ function addToTable(domain: string) {
     let table = document.getElementById('blacklist');
     table.appendChild(tableRow);
 }
+
+
+
+chrome.runtime.onMessage.addListener((message) => {
+    if(message.action == "firstInstall"){
+        openHelp();
+    }
+});

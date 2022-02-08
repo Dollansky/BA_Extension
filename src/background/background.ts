@@ -1,86 +1,82 @@
-import { TimeIntervallDto} from "../models/TimeIntervall";
+import {TimeIntervallDto} from "../models/TimeIntervall";
 import {
     sendMessageToEveryTab,
     serverUrl,
-    fetchParticipantId,
-    checkIfBaselineIsFinished,
+    checkIfBaselineIsFinished, checkIfParticipantIdIsSet,
 } from "./exportedFunctions";
 
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/background.js');
-}
-//
-let startTimeintervall: number = 0;
-let lastDomain = "";
-let participantId = "";
-
-
-chrome.storage.local.set({activeWebsites: []});
 
 
 
-function checkForParticipantId() {
-
-    chrome.storage.local.get(['participantId'], (result) => {
-        console.log("pId",participantId);
-            participantId = result.participantId;
-            if(participantId == null || participantId == ""){
-                fetchParticipantId();
-
-            }
-    })
-
-}
 
 export function checkDomain(website: string, tabId: number) {
     try {
-        checkForParticipantId();
+
         const currentDomain: string = new URL(website).hostname;
-        if (currentDomain !== lastDomain) {
-            chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished','participantId', 'lastDomain'], (result) => {
-                checkIfModeIsUndefined(result);
+
+
+        chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished', 'participantId', 'lastDomain', 'startTimeIntervall','dateWhenModeEnds'], (result) => {
+            if (currentDomain !== result.lastDomain) {
+
+                checkIfCriticalDataIsUndefined(result);
 
                 var baselineFinished: boolean = checkIfBaselineIsFinished(result.baselineFinished);
-
                 if (result.blacklist.includes(currentDomain) && baselineFinished && (result.mode === true)) {
                     // Open Modal
                     chrome.tabs.sendMessage(tabId, {domain: currentDomain, action: "Open Intervention Modal"});
                 }
+                sendIntervallAndGetGoal(result.lastDomain, result.blacklist.includes(result.lastDomain), result.startTimeIntervall, result.mode, baselineFinished, result.participantId);
+                setUpForNextTimeIntervall(currentDomain);
 
-                sendIntervallAndGetGoal(lastDomain, result.blacklist.includes(lastDomain), startTimeintervall, result.mode, baselineFinished, result.participantId);
+            }
+        })
 
-                startTimeintervall = new Date().getTime();
-                lastDomain = currentDomain;
-            })
-        }
     } catch (e) {
     }
 }
 
-export function checkIfModeIsUndefined(result: { [p: string]: any }) {
-    if (result.mode === undefined) {
+function setUpForNextTimeIntervall(currentDomain: string) {
+    chrome.storage.local.set({startTimeIntervall: new Date().getTime()});
+    chrome.storage.local.set({lastDomain: currentDomain})
+}
+
+export function checkIfCriticalDataIsUndefined(result: { [p: string]: any }) {
+
+    if (result.dateWhenModeEnds < Date.now()) {
+
         sendMessageToEveryTab("Open Mode Select");
     }
+    checkIfParticipantIdIsSet()
 }
 
 
 export function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, startTime: number, mode: boolean, baselineFinished: boolean, participantId: string) {
 
+    removeActiveWebsite("");
+
     let timeSpend = (new Date().getTime() - startTime) / 1000;
     var latestGoal: string = null;
     let reasonToStay: string = null;
     let goalId: string = null;
-    chrome.storage.local.get(['activeWebsites'], (result) => {
-        result.activeWebsites.forEach((obj : any) => {
+    chrome.storage.local.get(['activeWebsites', 'atLeastOne'], (result) => {
+        if(result.atLeastOne != null){
+            latestGoal= result.atLeastOne.goal;
+            reasonToStay = result.atLeastOne.reason;
+            goalId= result.atLeastOne.goalId;
+            chrome.storage.local.set({atLeastOne: null});
+        }
+
+        result.activeWebsites.forEach((obj: any) => {
             if (obj.hostname === domain) {
                 goalId = obj.goalId;
                 latestGoal = obj.goal;
                 reasonToStay = obj.reason;
-            }
+            };
         });
 
-        let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(participantId, mode,domain, blacklisted, timeSpend, baselineFinished,  startTime, new Date().getTime(),goalId, latestGoal,reasonToStay);
-        console.log(newTimeIntervallDto);
+
+        let newTimeIntervallDto: TimeIntervallDto = new TimeIntervallDto(participantId, mode, domain, blacklisted, timeSpend, baselineFinished, startTime, new Date().getTime(), goalId, latestGoal, reasonToStay);
+
         if (domain !== "") {
             sendIntervall(newTimeIntervallDto);
         }
@@ -88,22 +84,23 @@ export function sendIntervallAndGetGoal(domain: string, blacklisted: boolean, st
 }
 
 export function sendIntervall(newTimeIntervallDto: TimeIntervallDto) {
-    console.log(newTimeIntervallDto);
-    fetch(serverUrl + "timeIntervall/create", {
-        method: 'post',
-        headers: {
-            "Content-type": "application/json"
-        },
-        body: JSON.stringify(newTimeIntervallDto)
-    })
-        .then()
-        .then(function (data) {
 
+    if(newTimeIntervallDto.participantId != undefined && newTimeIntervallDto.participantId != ""){
+
+        fetch(serverUrl + "timeIntervall/create", {
+            method: 'post',
+            headers: {
+                "Content-type": "application/json"
+            },
+            body: JSON.stringify(newTimeIntervallDto)
         })
-        .catch(function (error) {
+            .then()
+            .then(function (data) {
 
-        });
-
+            })
+            .catch(function (error) {
+            });
+    }
 
 }
 
@@ -115,24 +112,32 @@ export function openOrCloseModalOnEveryTab(hostname: string, message: any, actio
                     action: action,
                     goal: message.goal,
                     url: message.hostname,
-                })
+                });
             }
         })
     });
 
 }
 
-export function updateActiveWebsitesAndSetTimeoutForReminder(hostname: string, reminderExpiration: number, message: any, tabId: number) {
+export function findGoalAndOpenReminder(hostname: string) {
+    chrome.storage.local.get(['activeWebsites'],(result) => {
+        result.activeWebsites.forEach((obj: any) => {
+            if (obj.hostname === hostname) {
+                openOrCloseModalOnEveryTab(hostname, {hostname: hostname, goal: obj.goal}, "Open Reminder Modal")
+            }
+        })
+    })
+}
 
-    addNewActiveWebsite(hostname, reminderExpiration, message, tabId);
+export function updateActiveWebsitesAndCreateAlarm(hostname: string, reminderDuration: number, message: any, tabId: number) {
 
+    addNewActiveWebsite(hostname, Date.now() + reminderDuration, message, tabId);
     openOrCloseModalOnEveryTab(hostname, message, "Close Intervention Modal");
 
-    setTimeout(() => {
-        openOrCloseModalOnEveryTab(hostname, message, "Open Reminder Modal")
-        removeActiveWebsite(hostname);
-    }, message.reminderTime)
+    chrome.alarms.create("Goal Setting Extension: "+ hostname,{delayInMinutes: reminderDuration / 60000 });
+
 }
+
 
 export function addNewActiveWebsite(hostname: string, reminderExpiration: number, message: any, tabId: number) {
     chrome.storage.local.get(['activeWebsites'], (result) => {
@@ -147,10 +152,15 @@ export function addNewActiveWebsite(hostname: string, reminderExpiration: number
 }
 
 export function removeActiveWebsite(hostname: string) {
+    let buffer = 0;
+    if(hostname == ""){
+        buffer = 4000;
+    }
     chrome.storage.local.get(['activeWebsites'], (result) => {
+
         let updatedActiveWebsites: Array<string> = [];
         result.activeWebsites.forEach((obj: any) => {
-            if (obj.hostname !== hostname) {
+            if (obj.hostname !== hostname && obj.reminderRunning + buffer > Date.now()) {
                 updatedActiveWebsites.unshift(obj)
             }
         })

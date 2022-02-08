@@ -5,7 +5,7 @@
 /***/ 144:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-/* unused harmony exports serverUrl, browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -39,16 +39,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -91,7 +91,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -208,10 +208,9 @@ var ModeDto = /** @class */ (function () {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-/* unused harmony exports handleModeChange, sendModeDto, sendModeDtoAndGetParticipantId, calcDateWhenModeEnds */
+/* unused harmony exports handleModeChange, setModeAlarm, sendModeDto, sendMode, calcDateWhenModeEnds */
 /* harmony import */ var _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
 /* harmony import */ var _models_ModeDto_ts__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(245);
-// TODO WEBPACK IMPROTING WHOLE FILE INSTEAD OF JUSTN THE FUNCTION
 //@ts-ignore
 
 //@ts-ignore
@@ -223,6 +222,9 @@ function handleModeChange(mode) {
     else {
         sendMessageToEveryTab("Close Intervention Modal");
     }
+}
+function setModeAlarm(dateWhenModeEnds) {
+    chrome.alarms.create('No Mode', { delayInMinutes: (dateWhenModeEnds - Date.now()) / 60000 });
 }
 function sendModeDto(mode, dateWhenModeEnds, duration, participantId) {
     var newModeDto = new ModeDto(participantId, mode, dateWhenModeEnds, duration);
@@ -239,7 +241,7 @@ function sendModeDto(mode, dateWhenModeEnds, duration, participantId) {
         .catch(function (error) {
     });
 }
-function sendModeDtoAndGetParticipantId(mode, dateWhenModeEnds, duration) {
+function sendMode(mode, dateWhenModeEnds, duration) {
     chrome.storage.local.get(['participantId'], function (result) {
         sendModeDto(mode, dateWhenModeEnds, duration, result.participantId);
     });
@@ -252,7 +254,7 @@ function calcDateWhenModeEnds(time) {
         var day = currTime.getDate();
         var setHour = time[0] + time[1];
         var setMinute = time[3] + time[4];
-        if (hour > setHour || hour == setHour && minutes > setMinute) {
+        if (hour > setHour || hour == setHour && minutes >= setMinute) {
             // next day ?
             day += 1;
         }

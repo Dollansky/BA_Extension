@@ -1,4 +1,3 @@
-import {Participant} from "../createParticipant/Participant";
 import {serverUrl} from "./exportedFunctions";
 import {Goal} from "../models/goal";
 
@@ -14,10 +13,10 @@ export function sendGoalAndSaveId(setGoal: string, domain: string, setGoalTime: 
             body: JSON.stringify(goal)
         }).then(response => response.text())
             .then(data => {
-                console.log(data);
+
                 addGoalId(data, domain);
             })
-            .catch(function (error) {
+            .catch(function () {
 
             });
     })
@@ -29,13 +28,16 @@ function addGoalId(goalId: string, domain: string) {
         let updatedActiveWebsites: Array<any> = [];
         result.activeWebsites.forEach((obj: any) => {
             if (obj.hostname == domain) {
-                updatedActiveWebsites.unshift({
+                let activeWebsite = {
                     hostname: obj.hostname,
                     reminderRunning: obj.reminderRunning,
                     goal: obj.goal,
                     reason: obj.reason,
                     goalId: goalId
-                })
+                }
+                updatedActiveWebsites.unshift(activeWebsite)
+                chrome.storage.local.set({atLeastOne: activeWebsite});
+
             } else {
                 updatedActiveWebsites.unshift(obj)
             }

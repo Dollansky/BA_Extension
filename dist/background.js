@@ -5,7 +5,7 @@
 /***/ 144:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-/* unused harmony exports serverUrl, browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -39,16 +39,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -91,7 +91,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -227,88 +227,82 @@ var TimeIntervallDto = /** @class */ (function () {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-/* unused harmony exports checkDomain, checkIfModeIsUndefined, sendIntervallAndGetGoal, sendIntervall, openOrCloseModalOnEveryTab, updateActiveWebsitesAndSetTimeoutForReminder, addNewActiveWebsite, removeActiveWebsite */
+/* unused harmony exports checkDomain, checkIfCriticalDataIsUndefined, sendIntervallAndGetGoal, sendIntervall, openOrCloseModalOnEveryTab, findGoalAndOpenReminder, updateActiveWebsitesAndCreateAlarm, addNewActiveWebsite, removeActiveWebsite */
 /* harmony import */ var _models_TimeIntervall__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(709);
 /* harmony import */ var _exportedFunctions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(144);
 
 
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/background.js');
-}
-//
-var startTimeintervall = 0;
-var lastDomain = "";
-var participantId = "";
-chrome.storage.local.set({ activeWebsites: [] });
-function checkForParticipantId() {
-    chrome.storage.local.get(['participantId'], function (result) {
-        console.log("pId", participantId);
-        participantId = result.participantId;
-        if (participantId == null || participantId == "") {
-            fetchParticipantId();
-        }
-    });
-}
 function checkDomain(website, tabId) {
     try {
-        checkForParticipantId();
         var currentDomain_1 = new URL(website).hostname;
-        if (currentDomain_1 !== lastDomain) {
-            chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished', 'participantId', 'lastDomain'], function (result) {
-                checkIfModeIsUndefined(result);
+        chrome.storage.local.get(['blacklist', 'mode', 'baselineFinished', 'participantId', 'lastDomain', 'startTimeIntervall', 'dateWhenModeEnds'], function (result) {
+            if (currentDomain_1 !== result.lastDomain) {
+                checkIfCriticalDataIsUndefined(result);
                 var baselineFinished = checkIfBaselineIsFinished(result.baselineFinished);
                 if (result.blacklist.includes(currentDomain_1) && baselineFinished && (result.mode === true)) {
                     // Open Modal
                     chrome.tabs.sendMessage(tabId, { domain: currentDomain_1, action: "Open Intervention Modal" });
                 }
-                sendIntervallAndGetGoal(lastDomain, result.blacklist.includes(lastDomain), startTimeintervall, result.mode, baselineFinished, result.participantId);
-                startTimeintervall = new Date().getTime();
-                lastDomain = currentDomain_1;
-            });
-        }
+                sendIntervallAndGetGoal(result.lastDomain, result.blacklist.includes(result.lastDomain), result.startTimeIntervall, result.mode, baselineFinished, result.participantId);
+                setUpForNextTimeIntervall(currentDomain_1);
+            }
+        });
     }
     catch (e) {
     }
 }
-function checkIfModeIsUndefined(result) {
-    if (result.mode === undefined) {
+function setUpForNextTimeIntervall(currentDomain) {
+    chrome.storage.local.set({ startTimeIntervall: new Date().getTime() });
+    chrome.storage.local.set({ lastDomain: currentDomain });
+}
+function checkIfCriticalDataIsUndefined(result) {
+    if (result.dateWhenModeEnds < Date.now()) {
         sendMessageToEveryTab("Open Mode Select");
     }
+    checkIfParticipantIdIsSet();
 }
 function sendIntervallAndGetGoal(domain, blacklisted, startTime, mode, baselineFinished, participantId) {
+    removeActiveWebsite("");
     var timeSpend = (new Date().getTime() - startTime) / 1000;
     var latestGoal = null;
     var reasonToStay = null;
     var goalId = null;
-    chrome.storage.local.get(['activeWebsites'], function (result) {
+    chrome.storage.local.get(['activeWebsites', 'atLeastOne'], function (result) {
+        if (result.atLeastOne != null) {
+            latestGoal = result.atLeastOne.goal;
+            reasonToStay = result.atLeastOne.reason;
+            goalId = result.atLeastOne.goalId;
+            chrome.storage.local.set({ atLeastOne: null });
+        }
         result.activeWebsites.forEach(function (obj) {
             if (obj.hostname === domain) {
                 goalId = obj.goalId;
                 latestGoal = obj.goal;
                 reasonToStay = obj.reason;
             }
+            ;
         });
         var newTimeIntervallDto = new TimeIntervallDto(participantId, mode, domain, blacklisted, timeSpend, baselineFinished, startTime, new Date().getTime(), goalId, latestGoal, reasonToStay);
-        console.log(newTimeIntervallDto);
         if (domain !== "") {
             sendIntervall(newTimeIntervallDto);
         }
     });
 }
 function sendIntervall(newTimeIntervallDto) {
-    console.log(newTimeIntervallDto);
-    fetch(serverUrl + "timeIntervall/create", {
-        method: 'post',
-        headers: {
-            "Content-type": "application/json"
-        },
-        body: JSON.stringify(newTimeIntervallDto)
-    })
-        .then()
-        .then(function (data) {
-    })
-        .catch(function (error) {
-    });
+    if (newTimeIntervallDto.participantId != undefined && newTimeIntervallDto.participantId != "") {
+        fetch(serverUrl + "timeIntervall/create", {
+            method: 'post',
+            headers: {
+                "Content-type": "application/json"
+            },
+            body: JSON.stringify(newTimeIntervallDto)
+        })
+            .then()
+            .then(function (data) {
+        })
+            .catch(function (error) {
+        });
+    }
 }
 function openOrCloseModalOnEveryTab(hostname, message, action) {
     chrome.tabs.query({}, function (tabs) {
@@ -323,13 +317,19 @@ function openOrCloseModalOnEveryTab(hostname, message, action) {
         });
     });
 }
-function updateActiveWebsitesAndSetTimeoutForReminder(hostname, reminderExpiration, message, tabId) {
-    addNewActiveWebsite(hostname, reminderExpiration, message, tabId);
+function findGoalAndOpenReminder(hostname) {
+    chrome.storage.local.get(['activeWebsites'], function (result) {
+        result.activeWebsites.forEach(function (obj) {
+            if (obj.hostname === hostname) {
+                openOrCloseModalOnEveryTab(hostname, { hostname: hostname, goal: obj.goal }, "Open Reminder Modal");
+            }
+        });
+    });
+}
+function updateActiveWebsitesAndCreateAlarm(hostname, reminderDuration, message, tabId) {
+    addNewActiveWebsite(hostname, Date.now() + reminderDuration, message, tabId);
     openOrCloseModalOnEveryTab(hostname, message, "Close Intervention Modal");
-    setTimeout(function () {
-        openOrCloseModalOnEveryTab(hostname, message, "Open Reminder Modal");
-        removeActiveWebsite(hostname);
-    }, message.reminderTime);
+    chrome.alarms.create("Goal Setting Extension: " + hostname, { delayInMinutes: reminderDuration / 60000 });
 }
 function addNewActiveWebsite(hostname, reminderExpiration, message, tabId) {
     chrome.storage.local.get(['activeWebsites'], function (result) {
@@ -343,10 +343,14 @@ function addNewActiveWebsite(hostname, reminderExpiration, message, tabId) {
     });
 }
 function removeActiveWebsite(hostname) {
+    var buffer = 0;
+    if (hostname == "") {
+        buffer = 4000;
+    }
     chrome.storage.local.get(['activeWebsites'], function (result) {
         var updatedActiveWebsites = [];
         result.activeWebsites.forEach(function (obj) {
-            if (obj.hostname !== hostname) {
+            if (obj.hostname !== hostname && obj.reminderRunning + buffer > Date.now()) {
                 updatedActiveWebsites.unshift(obj);
             }
         });

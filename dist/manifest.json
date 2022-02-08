@@ -32,6 +32,7 @@
     "alarms"
   ],
 
+
   "background": {
     "service_worker": "serviceWorker.js"
   },
@@ -48,6 +49,7 @@
         "/onInstallationSetup.js",
         "/exportedFunctions.js",
         "/background.js",
+        "/popup.js",
         "/img/**/*",
         "/img/*"
       ],

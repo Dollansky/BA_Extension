@@ -8,7 +8,7 @@
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "KB": () => (/* binding */ serverUrl)
 /* harmony export */ });
-/* unused harmony exports browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -42,16 +42,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -94,7 +94,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -220,32 +220,36 @@ var __webpack_exports__ = {};
 
 var blacklist;
 var previousGoals;
-document.getElementById('helpButton').addEventListener("click", function () {
-    document.getElementById('helpBox').className = "col s3 card blue-grey darken-1 scale-transition scale-in";
-    document.getElementById('helpButton').hidden = true;
-});
-chrome.storage.local.get(['blacklist', 'previousGoals'], function (result) {
-    var listContainer = document.getElementById('blacklist');
-    var listElement = document.createElement('ul');
-    listContainer.appendChild(listElement);
-    blacklist = result.blacklist;
-    previousGoals = result.previousGoals;
-    blacklist.forEach(function (domain) {
-        addToTable(domain);
-    });
-    var submit = document.getElementById('submitDomain');
-    submit.addEventListener('click', function () {
-        newDomain();
-    });
-    document.getElementById('newDomain').addEventListener('keyup', function (event) {
-        if (event.code === 'Enter') {
+setUpBlacklist();
+function openHelp() {
+    var insModal = M.Modal.getInstance(document.getElementById('instructionsModal'));
+    insModal.open();
+}
+function setUpBlacklist() {
+    chrome.storage.local.get(['blacklist', 'previousGoals', 'instructionCheck'], function (result) {
+        var listContainer = document.getElementById('blacklist');
+        var listElement = document.createElement('ul');
+        listContainer.appendChild(listElement);
+        blacklist = result.blacklist;
+        previousGoals = result.previousGoals;
+        blacklist.forEach(function (domain) {
+            addToTable(domain);
+        });
+        var submit = document.getElementById('submitDomain');
+        submit.addEventListener('click', function () {
             newDomain();
-        }
-    });
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        });
+        document.getElementById('newDomain').addEventListener('keyup', function (event) {
+            if (event.code === 'Enter') {
+                newDomain();
+            }
+        });
         M.AutoInit(document.body);
+        document.getElementById('helpButton').addEventListener("click", function () {
+            openHelp();
+        });
     });
-});
+}
 function removeDomain(domain) {
     chrome.storage.local.get(['blacklist', 'participantId'], function (result) {
         var newBlacklist = result.blacklist;
@@ -270,7 +274,9 @@ function newDomain() {
 function updateBlacklist(currentDomain) {
     chrome.storage.local.get(['blacklist', 'participantId'], function (result) {
         var newBlacklist = result.blacklist;
-        if (newBlacklist.filter(function (entry) { return entry === currentDomain; }).length === 0) {
+        if (newBlacklist.filter(function (entry) { return entry === currentDomain; }).length === 0 && currentDomain != "") {
+            //@ts-ignore
+            document.getElementById('newDomain').value = "";
             newBlacklist.unshift(currentDomain);
             chrome.storage.local.set({ blacklist: newBlacklist });
             M.Modal.getInstance(document.getElementById("modal1")).close();
@@ -279,7 +285,7 @@ function updateBlacklist(currentDomain) {
             openToast(currentDomain + ' wurde der Blacklist hinzugefügt');
             addToTable(currentDomain);
         }
-        else {
+        else if (currentDomain != "") {
             M.Modal.getInstance(document.getElementById("modal1")).close();
             openToast("Die Website ist bereits in der Liste");
         }
@@ -338,6 +344,11 @@ function addToTable(domain) {
     var table = document.getElementById('blacklist');
     table.appendChild(tableRow);
 }
+chrome.runtime.onMessage.addListener(function (message) {
+    if (message.action == "firstInstall") {
+        openHelp();
+    }
+});
 
 })();
 

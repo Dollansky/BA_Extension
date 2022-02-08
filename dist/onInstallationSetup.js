@@ -7,11 +7,9 @@
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Kk": () => (/* binding */ browserUrl),
-/* harmony export */   "mU": () => (/* binding */ sendMessageToEveryTab),
-/* harmony export */   "JH": () => (/* binding */ updateIconTimer),
-/* harmony export */   "Bf": () => (/* binding */ setIcon)
+/* harmony export */   "mU": () => (/* binding */ sendMessageToEveryTab)
 /* harmony export */ });
-/* unused harmony exports serverUrl, checkIfModeActive, openModeSelectInCurrentTab, checkIfBaselineIsFinished, calcIconTimer, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, checkIfModeActive, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -45,16 +43,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -97,7 +95,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -151,9 +149,7 @@ function onInstalledDo() {
 /***/ 642:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Q": () => (/* binding */ Participant)
-/* harmony export */ });
+/* unused harmony export Participant */
 var Participant = /** @class */ (function () {
     function Participant(name, email) {
         this.name = name;
@@ -214,9 +210,9 @@ var Participant = /** @class */ (function () {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-/* unused harmony export onInstalledDo */
-/* harmony import */ var _exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
-/* harmony import */ var _createParticipant_Participant_ts__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
+/* unused harmony exports onInstalledDo, checkIfParticipantIdSet */
+/* harmony import */ var _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
+/* harmony import */ var _createParticipant_Participant__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -257,21 +253,19 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 //@ts-ignore
 
-chrome.storage.local.set({ baselineFinished: undefined });
 chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds'], function (result) {
     if (result.blacklist == undefined) {
-        var blacklist = ["www.crunchyroll.com", "www.reddit.com", "www.instagram.com", "www.facebook.com", "www.netflix.com", "9gag.com", 'www.twitch.tv'];
+        var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
         chrome.storage.local.set({ blacklist: blacklist });
         chrome.action.setIcon({ path: 'img/work.png' });
-        chrome.bookmarks.create({ parentId: '1', title: 'Options for Goal Setting Extension', url: _exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
+        chrome.bookmarks.create({ parentId: '1', title: 'Blacklist Extension', url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
     }
     if (result.baselineFinished === undefined || result.baselineFinished == null) {
         var today = new Date();
         chrome.storage.local.set({ baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth(), today.getUTCFullYear()] });
     }
     if (result.previousGoals == undefined) {
-        var previousGoals = ['Pause', 'Kurzes Video schauen'];
-        chrome.storage.local.set({ previousGoals: previousGoals });
+        chrome.storage.local.set({ previousGoals: [] });
     }
     if (result.lastDomain == undefined) {
         chrome.storage.local.set({ lastDomain: { domain: "Installation Time" } });
@@ -280,7 +274,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
         chrome.storage.local.set({ activeWebsites: [] });
     }
     if (result.mode == undefined) {
-        (0,_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .sendMessageToEveryTab */ .mU)("Open Mode Select");
+        (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .sendMessageToEveryTab */ .mU)("Open Mode Select");
     }
     if (result.dateWhenModeEnds == undefined) {
         chrome.storage.local.set({ dateWhenModeEnds: 0 });
@@ -303,8 +297,7 @@ function onInstalledDo() {
             chrome.storage.local.set({ baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth(), today.getUTCFullYear()] });
         }
         if (result.previousGoals == undefined) {
-            var previousGoals = ['Kurzes Video schauen'];
-            chrome.storage.local.set({ previousGoals: previousGoals });
+            chrome.storage.local.set({ previousGoals: [] });
         }
         if (result.lastDomain == undefined) {
             chrome.storage.local.set({ lastDomain: { domain: "Installation Time" } });
@@ -313,36 +306,39 @@ function onInstalledDo() {
             chrome.storage.local.set({ activeWebsites: [] });
         }
         if (result.mode == undefined) {
-            sendMessageToEveryTab("Open Mode Select");
+            chrome.storage.local.set({ mode: false });
         }
         if (result.dateWhenModeEnds == undefined) {
             chrome.storage.local.set({ dateWhenModeEnds: 0 });
         }
         if (result.participantId == undefined) {
-            fetchParticipantId();
+            chrome.tabs.create({ url: browserUrl + 'options/options.html' });
+            setTimeout(function () {
+                checkIfParticipantIdIsSet();
+            }, 1000);
+        }
+        if (result.startTimeIntervall == undefined) {
+            chrome.storage.local.set({ startTimeIntervall: new Date().getTime() });
         }
     });
 }
-chrome.runtime.onStartup.addListener(function () {
-    chrome.storage.local.set({ lastDomain: { domain: "StartUp" } });
-    chrome.storage.local.set({ activeWebsites: [] });
-    (0,_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .setIcon */ .Bf)();
-    (0,_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .updateIconTimer */ .JH)();
-});
-chrome.runtime.onMessage.addListener(function (message) {
-    if (message.action == "Send Participant") {
-        checkIfParticipantIdSet(message.name, message.email);
-    }
-    if (message.action == "Close Participant") {
-        (0,_exportedFunctions_ts__WEBPACK_IMPORTED_MODULE_0__/* .sendMessageToEveryTab */ .mU)("Close Participant Modal");
-    }
-});
 function createParticipant(name, email) {
     return __awaiter(this, void 0, void 0, function () {
         var participant;
         return __generator(this, function (_a) {
-            participant = new _createParticipant_Participant_ts__WEBPACK_IMPORTED_MODULE_1__/* .Participant */ .Q(name, email);
-            chrome.storage.local.set({ participantId: "Usability Study" });
+            participant = new Participant(name, email);
+            fetch(serverUrl + "participant/create", {
+                method: 'post',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify(participant)
+            }).then(function (response) { return response.text(); })
+                .then(function (data) {
+                setParticipantId(data);
+            })
+                .catch(function (error) {
+            });
             return [2 /*return*/];
         });
     });
@@ -355,7 +351,6 @@ function checkIfParticipantIdSet(name, email) {
         if (result.participantId == undefined || result.participantId == "") {
             createParticipant(name, email);
         }
-        ;
     });
 }
 

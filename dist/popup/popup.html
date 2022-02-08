@@ -4,22 +4,39 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <style type="text/css">
         body {
-            width: 200px;
-            height: 80px;
+            width: 250px;
+            height: 100px;
             overflow: hidden;
         }
     </style>
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
 <div class="container">
-    <div class="row s6">
-
-        <a id="selectMode" class="waves-effect waves-light btn center-align col s12"> Modusauswahl </a>
+    <div class="row s2">
+        <a id="openBlacklist" class="waves-effect waves-light btn center-align col s12" style="margin-top: 10px"> Öffne Blacklist</a>
+    </div>
+    <hr>
+    <div class="row" id="currentMode" style="margin-top: 10px; margin-bottom: 10px">
+        <div id="clockdiv" style="margin-top: 10px; margin-bottom: 10px">
+            <div>
+                <span class="hours"></span>
+                <div class="smalltext">Hours</div>
+            </div>
+            <div>
+                <span class="minutes"></span>
+                <div class="smalltext">Minutes</div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <img id="modeImg">
+    </div>
+    <div class="row s2">
+        <a id="selectMode" class="waves-effect waves-light btn center-align col s12" style="margin-bottom: 10px"> Modusauswahl </a>
 
     </div>
-    <div class="row s6">
-        <a id="openBlacklist" class="waves-effect waves-light btn center-align col s12"> Öffne Blacklist</a>
-    </div>
+
 </div>
 </body>
 <script src="../addMaterialize.js"></script>

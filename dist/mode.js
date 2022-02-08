@@ -8,7 +8,7 @@
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Kk": () => (/* binding */ browserUrl)
 /* harmony export */ });
-/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -42,16 +42,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -94,7 +94,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -194,7 +194,7 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
 
-;// CONCATENATED MODULE: ./src/popup/modeSelection.html
+;// CONCATENATED MODULE: ./src/html/modeSelection.html
 // Module
 var code = "<html lang=\"en\"> <head> <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"> </head> <div class=\"modal\" style=\"width:75%!important;height:100%!important\" id=\"modeModal\"> <div class=\"container\" style=\"width:100%!important;height:100%!important\"> <div class=\"row\"> <div class=\"center-align\"><h2>Modusauswahl</h2></div> <hr> </div> <div class=\"row offset-s4\"> <div class=\"col s6\"> <div class=\"center-align\"> <button id=\"workButton\"></button> </div> </div> <div class=\"col s6\"> <div class=\"center-align\"> <button id=\"freetimeButton\"></button> </div> </div> </div> </div> </div> </html> ";
 // Exports

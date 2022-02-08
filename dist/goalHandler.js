@@ -5,7 +5,7 @@
 /***/ 144:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-/* unused harmony exports serverUrl, browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -39,16 +39,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -91,7 +91,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -225,10 +225,9 @@ function sendGoalAndSaveId(setGoal, domain, setGoalTime, reason) {
             body: JSON.stringify(goal)
         }).then(function (response) { return response.text(); })
             .then(function (data) {
-            console.log(data);
             addGoalId(data, domain);
         })
-            .catch(function (error) {
+            .catch(function () {
         });
     });
 }
@@ -237,13 +236,15 @@ function addGoalId(goalId, domain) {
         var updatedActiveWebsites = [];
         result.activeWebsites.forEach(function (obj) {
             if (obj.hostname == domain) {
-                updatedActiveWebsites.unshift({
+                var activeWebsite = {
                     hostname: obj.hostname,
                     reminderRunning: obj.reminderRunning,
                     goal: obj.goal,
                     reason: obj.reason,
                     goalId: goalId
-                });
+                };
+                updatedActiveWebsites.unshift(activeWebsite);
+                chrome.storage.local.set({ atLeastOne: activeWebsite });
             }
             else {
                 updatedActiveWebsites.unshift(obj);

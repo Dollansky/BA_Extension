@@ -6,9 +6,10 @@
 
 "use strict";
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Kk": () => (/* binding */ browserUrl)
+/* harmony export */   "Kk": () => (/* binding */ browserUrl),
+/* harmony export */   "c1": () => (/* binding */ openModeSelectInCurrentTab)
 /* harmony export */ });
-/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -42,16 +43,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -94,7 +95,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -12595,7 +12596,7 @@ var __webpack_exports__ = {};
 
 ;// CONCATENATED MODULE: ./src/createParticipant/createParticipant.html
 // Module
-var code = "<html lang=\"en\"> <head> <link href=\"https://fonts.googleapis.com/icon?family=Material+Icons\" rel=\"stylesheet\"> <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"> </head> <div class=\"modal\" style=\"width:75%!important;height:100%!important\" id=\"nameModal\"> <div class=\"container\" style=\"width:100%!important;height:100%!important\"> <div class=\"row\"> <div class=\"center-align\"><h3>Goal-Setting Extension</h3></div> <hr> </div> <div class=\"row\"> <label for=\"Name\">Name</label><input id=\"Name\" placeholder=\"Max Mustermann\"> </div> <div class=\"row\"> <label for=\"Email\">Name</label><input id=\"Email\" placeholder=\"max.mustermann@gmail.com\"> </div> <div class=\"row\"> <button class=\"waves-effect waves-light btn\" id=\"nameSubmit\">Senden</button> </div> <div class=\"row\"> <div class=\"col s6 card blue-grey darken-1 scale-transition scale-in\" id=\"helpBox2\"> <div class=\"card-content white-text\"> <span class=\"card-title\"></span> <p>Die Daten werden benötigt, um Kontakt für die Studie aufzunehmen.<br> </p> </div> </div> </div> </div> </div> </html> ";
+var code = "<html lang=\"en\"> <head> <link href=\"https://fonts.googleapis.com/icon?family=Material+Icons\" rel=\"stylesheet\"> <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"> </head> <div class=\"modal\" style=\"width:75%!important;height:100%!important\" id=\"nameModal\"> <div class=\"container\" style=\"width:100%!important;height:100%!important\"> <div class=\"row\"> <div class=\"center-align\"><h3>Goal-Setting Extension</h3></div> <hr> </div> <div class=\"row\"> <label for=\"Name\">Name</label><input id=\"Name\" placeholder=\"Max Mustermann\"> </div> <div class=\"row\"> <label for=\"Email\">E-Mail</label><input id=\"Email\" placeholder=\"max.mustermann@gmail.com\"> </div> <div class=\"row\"> <button class=\"waves-effect waves-light btn\" id=\"nameSubmit\">Senden</button> </div> <div class=\"row\"> <div class=\"col s6 card blue-grey darken-1 scale-transition scale-in\" id=\"helpBox2\"> <div class=\"card-content white-text\"> <span class=\"card-title\"></span> <p>Die Daten werden benötigt, um Kontakt für die Studie aufzunehmen.<br> </p> </div> </div> </div> </div> </div> </html> ";
 // Exports
 /* harmony default export */ const createParticipant = (code);
 // EXTERNAL MODULE: ./src/background/exportedFunctions.ts
@@ -12697,6 +12698,7 @@ function checkIfValidInputAndSend() {
     var email = emailInput.value;
     if (validateEmail(email)) {
         requestParticipantId(name, email);
+        (0,exportedFunctions/* openModeSelectInCurrentTab */.c1)();
         getInstance().close();
     }
     else {

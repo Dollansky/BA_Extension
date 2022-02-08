@@ -9,7 +9,7 @@
 /* harmony export */   "Kk": () => (/* binding */ browserUrl),
 /* harmony export */   "p6": () => (/* binding */ checkIfBaselineIsFinished)
 /* harmony export */ });
-/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, getParticipantId, onInstalledDo */
+/* unused harmony exports serverUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
 // Webpack imports whole file this is a workaround
 // export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -43,16 +43,16 @@ function openModeSelectInCurrentTab() {
 function checkIfBaselineIsFinished(baselineFinished) {
     var today = new Date();
     var baselineDate = new Date(baselineFinished[2], baselineFinished[1], baselineFinished[0]);
-    // TODO uncomment and delete return true;
-    return true;
-    // return (today >= baselineDate);
+    return (today >= baselineDate);
 }
 function updateIconTimer() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
-            chrome.action.setBadgeText({ text: timeTillModeEnds });
-            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec' && timeTillModeEnds[0] != '0') {
+            if (timeTillModeEnds[0] != "-") {
+                chrome.action.setBadgeText({ text: timeTillModeEnds });
+            }
+            if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
                     updateIconTimer();
                 }, 1000);
@@ -95,7 +95,7 @@ function fetchParticipantId() {
         });
     });
 }
-function getParticipantId() {
+function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
             fetchParticipantId();
@@ -199,7 +199,7 @@ var __webpack_exports__ = {};
 var exportedFunctions = __webpack_require__(144);
 ;// CONCATENATED MODULE: ./src/html/reminderModal.html
 // Module
-var code = "<html lang=\"en\"> <head> <link href=\"https://fonts.googleapis.com/icon?family=Material+Icons\" rel=\"stylesheet\"> <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"> </head> <div class=\"modal\" style=\"width:75%!important\" id=\"modal1\" tabindex=\"0\"> <div class=\"modal-content\"><img> <div class=\"input-field\"> <div class=\"row\"> <p style=\"font-size:20px\"> Du wolltest gerade eigentlich lernen, falls du diese Seite nicht zum Lernen benutzt setzte dir ein konkretes Ziel: </p> </div> <div class=\"row\"><input id=\"goalInput\" class=\"autocomplete col s9\" placeholder=\"Was ist Ihr Ziel beim Besuch von www.google.de\"> <div class=\"input-field col\" id=\"timeSelect\" style=\"width:200px;height:50px\"><select id=\"timeSelectValue\" class=\"browser-default\"> <option value=\"0.01666666666\">1 Sekunde (Testing)</option> <option value=\"0.08333333333\">5 Sekunden (Testing)</option> <option value=\"0.25\">15 Sekunden (Testing)</option> <option value=\"0.5\">30 Sekunden (Testing)</option> <option value=\"1\">1Minute</option> <option value=\"2\">2 Minuten</option> <option value=\"3\">3 Minuten</option> <option value=\"4\">4 Minuten</option> <option value=\"5\">5 Minuten</option> <option value=\"10\">10 Minuten</option> <option value=\"15\">15 Minuten</option> <option value=\"20\">20 Minuten</option> <option value=\"25\">25 Minuten</option> <option value=\"30\">30 Minuten</option> <option value=\"45\">45 Minuten</option> <option value=\"60\">60 Minuten</option> </select></div> </div> <div class=\"row\"> <button id=\"submitButton\" class=\"waves-effect waves-light btn\">Ziel setzen</button> </div> </div> <div class=\"input-field\" id=\"selectDiv\"> <div class=\"row\"></div> </div> </div> </div> <div class=\"modal\" style=\"width:80%!important\" id=\"reminderModal\"> <div class=\"container\" style=\"width:100%!important\"> <div class=\"row\"> <div class=\"col s2\" id=\"imgContainer\"> </div> <div class=\"col offset-s1 align-bottom\"> <span id=\"goalSpan\" style=\"font-size:40px\"></span> </div> </div> <div class=\"row\"> <form> <div class=\"col offset-s2\"> <label> <input name=\"reason\" type=\"radio\" class=\"with-gap\" value=\"Ich habe mein Ziel noch nicht erreicht.\"> <span>Ich habe mein Ziel noch nicht erreicht.</span> </label> </div> <div class=\"col\"> <label> <input name=\"reason\" type=\"radio\" class=\"with-gap\" value=\"Ich brauche noch mehr Erholung.\"> <span>Ich brauche noch mehr Erholung.</span> </label> </div> <div class=\"col\"> <label> <input name=\"reason\" type=\"radio\" class=\"with-gap\" value=\"Ich hab keine Lust mehr zu lernen.\"> <span>Ich hab keine Lust mehr zu lernen.</span> </label> </div> </form> <div class=\"col\"> <button class=\"waves-effect waves-light btn\" id=\"OkShadow\"> Ok </button> </div> </div> </div> </div> </html> ";
+var code = "<html lang=\"en\"> <head> <link href=\"https://fonts.googleapis.com/icon?family=Material+Icons\" rel=\"stylesheet\"> <meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\"> <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\"> <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin> <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap\" rel=\"stylesheet\"> </head> <div class=\"modal\" style=\"width:75%!important\" id=\"modal1\" tabindex=\"0\"> <div class=\"modal-content\"><img> <div class=\"input-field\"> <div class=\"row\"> <p style=\"font-size:20px\"> Du wolltest gerade eigentlich lernen, falls du diese Seite nicht zum Lernen benutzt setzte dir ein konkretes Ziel: </p> </div> <div class=\"row\"> <input id=\"goalInput\" class=\"autocomplete col s9\" placeholder=\"Was ist Ihr Ziel beim Besuch von www.google.de\"> <div class=\"input-field col\" id=\"timeSelect\" style=\"width:200px;height:50px;font-size:14px;font-weight:700\"><select id=\"timeSelectValue\" class=\"browser-default\"> <option value=\"0.01666666666\">1 Sekunde (Testing)</option> <option value=\"0.08333333333\">5 Sekunden (Testing)</option> <option value=\"0.25\">15 Sekunden (Testing)</option> <option value=\"0.5\">30 Sekunden (Testing)</option> <option value=\"1\">1Minute</option> <option value=\"2\">2 Minuten</option> <option value=\"3\">3 Minuten</option> <option value=\"4\">4 Minuten</option> <option value=\"5\">5 Minuten</option> <option value=\"10\">10 Minuten</option> <option value=\"15\">15 Minuten</option> <option value=\"20\">20 Minuten</option> <option value=\"25\">25 Minuten</option> <option value=\"30\">30 Minuten</option> <option value=\"45\">45 Minuten</option> <option value=\"60\">60 Minuten</option> </select></div> </div> </div> <div class=\"input-field\" id=\"selectDiv\"> <div class=\"row s2\"></div> </div> <div class=\"row\"> <button id=\"submitButton\" class=\"col offset-s9 s3 waves-effect waves-light btn-large\">Ziel setzen</button> </div> </div> </div> <div class=\"modal\" style=\"width:80%!important\" id=\"reminderModal\"> <div class=\"modal-content\"> <div class=\"row\"> <div class=\"col s2\" id=\"imgContainer\"> </div> <div class=\"col align-bottom\"> <p id=\"goalSpan\" style=\"font-size:35px\"></p> </div> </div> <div class=\"row offset-s2\"> <form> <div class=\"col offset-s1\"> <div class=\"card-panel teal lighten-5\" id=\"option1\"> <label> <input name=\"reason\" type=\"radio\" class=\"with-gap\" value=\"Ich habe mein Ziel noch nicht erreicht.\" id=\"option1Button\"> <span style=\"font-size:14px;font-weight:700;color:#000\">Ich habe mein Ziel noch nicht erreicht.</span> </label> </div> </div> <div class=\"col\"> <div class=\"card-panel teal lighten-5\" id=\"option2\"> <label> <input name=\"reason\" type=\"radio\" class=\"with-gap\" value=\"Ich brauche noch mehr Erholung.\" id=\"option2Button\"> <span style=\"font-size:14px;font-weight:700;color:#000\">Ich brauche noch mehr Erholung.</span> </label> </div> </div> <div class=\"col\"> <div class=\"card-panel teal lighten-5\" id=\"option3\"> <label> <input name=\"reason\" type=\"radio\" class=\"with-gap\" value=\"Ich hab keine Lust mehr zu lernen.\" id=\"option3Button\"> <span style=\"font-size:14px;font-weight:700;color:#000\">Ich hab keine Lust mehr zu lernen.</span> </label> </div> </div> </form> </div> </div> </div> </html> ";
 // Exports
 /* harmony default export */ const reminderModal = (code);
 ;// CONCATENATED MODULE: ./src/contentInjection/contentInjection.ts
@@ -208,31 +208,31 @@ var code = "<html lang=\"en\"> <head> <link href=\"https://fonts.googleapis.com/
 
 var currentDomain = new URL(location.href).hostname;
 var reason = null;
-chrome.storage.local.get(['blacklist'], function (result) {
-    if (result.blacklist.includes(currentDomain)) {
-        createShadowrootAndAddHtml();
-        getAndOpenModal();
-    }
-});
+setupContent();
+function setupContent() {
+    chrome.storage.local.get(['blacklist'], function (result) {
+        if (result.blacklist.includes(currentDomain)) {
+            createShadowrootAndAddHtml();
+            openModalIfValid();
+        }
+    });
+}
 // For tab navigation
 chrome.runtime.onMessage.addListener(function (message) {
     if (message.action == "Close Intervention Modal") {
-        // @ts-ignore
-        getShadowWrapper().shadowRoot.getElementById('goalInput').value = '';
         getModalInstance().close();
     }
     else if (message.action == "Open Intervention Modal") {
-        getAndOpenModal();
+        openModalIfValid();
     }
     else if (message.action == "Open Reminder Modal" && (message.url === new URL(location.href).hostname)) {
-        console.log("open remidner message");
         openReminder(message.goal);
     }
     else if (message.action == "Close Reminder Modal") {
         closeReminder();
     }
 });
-function getAndOpenModal() {
+function openModalIfValid() {
     chrome.storage.local.get(['blacklist', 'baselineFinished', 'mode', 'activeWebsites'], function (result) {
         var currentDomain = new URL(location.href).hostname;
         if (result.blacklist.includes(currentDomain) && (0,exportedFunctions/* checkIfBaselineIsFinished */.p6)(result.baselineFinished) && result.mode && !checkIfAlreadyActive(result, currentDomain)) {
@@ -240,8 +240,6 @@ function getAndOpenModal() {
                 createShadowrootAndAddHtml();
             }
             if (!getReminderInstance().isOpen) {
-                // @ts-ignore
-                getShadowWrapper().shadowRoot.getElementById('goalInput').value = '';
                 var modalInstance = getModalInstance();
                 // timeout prevents site from scrolling
                 if (!modalInstance.isOpen) {
@@ -351,12 +349,10 @@ function addButtonFunctionality() {
     addRadioButtonsFunctionality();
 }
 function addSubmitButtonFunctionality() {
-    var submitButton = getShadowWrapper().shadowRoot.querySelectorAll('.btn')[0];
+    var submitButton = getShadowWrapper().shadowRoot.getElementById('submitButton');
     var goalInput = getShadowRoot().querySelectorAll('#goalInput')[0];
     var timeSelector = getShadowRoot().getElementById('timeSelectValue');
     submitButton.addEventListener('click', function () {
-        console.log(goalInput);
-        console.log(timeSelector);
         //@ts-ignore
         setLatestAndPreviousGoals(goalInput.value, timeSelector.value);
         getModalInstance().close();
@@ -372,21 +368,18 @@ function addSubmitButtonFunctionality() {
 }
 function addRadioButtonsFunctionality() {
     var radioButtons = getShadowRoot().querySelectorAll("input.with-gap");
-    console.log(radioButtons);
-    var okButton = getShadowRoot().getElementById('OkShadow');
     radioButtons.forEach(function (btn) {
         btn.addEventListener('click', function () {
             getReminderInstance().options.dismissible = true;
-            // @ts-ignore
-            okButton.disabled = false;
         });
     });
-    okButton.addEventListener('click', closeReminder);
-    okButton.addEventListener('keyup', function (event) {
-        //@ts-ignore
-        if (event.code === 'Enter' && okButton.disabled == false) {
-            closeReminder();
-        }
+    var cards = getShadowRoot().querySelectorAll('.card-panel');
+    cards.forEach(function (card) {
+        card.addEventListener('click', function () {
+            getReminderInstance().options.dismissible = true;
+            //@ts-ignore
+            getShadowRoot().getElementById(card.id + "Button").checked = true;
+        });
     });
 }
 function closeReminder() {
@@ -404,7 +397,7 @@ function initializeModals() {
         onCloseEnd: function () {
             setReason();
             unCheckRadioButtons();
-            openInputModalWithValue();
+            openModalIfValid();
             closeReminderInOtherTabs();
         }
     });
@@ -433,12 +426,6 @@ function setReason() {
             reason = btn.value;
         }
     });
-}
-function openInputModalWithValue() {
-    var reminderValue = getShadowRoot().getElementById('goalSpan').innerText;
-    //@ts-ignore
-    getShadowWrapper().shadowRoot.getElementById('goalInput').value = reminderValue;
-    getModalInstance().open();
 }
 function closeReminderInOtherTabs() {
     chrome.runtime.sendMessage({

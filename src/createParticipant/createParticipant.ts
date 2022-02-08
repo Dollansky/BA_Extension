@@ -1,11 +1,11 @@
 // @ts-ignore
 import html from "../createParticipant/createParticipant.html";
 //@ts-ignore
-import {browserUrl, serverUrl} from "../background/exportedFunctions.ts";
+import {browserUrl, openModeSelectInCurrentTab, serverUrl} from "../background/exportedFunctions.ts";
 //@ts-ignore
 import {Participant} from "./Participant.ts";
-import {BlackList} from "../models/BlackList";
 import "../materialize/materialize";
+
 
 
 chrome.runtime.onMessage.addListener((message) => {
@@ -40,7 +40,7 @@ function openModal() {
     window.scrollTo(0, 0);
 }
 function closeInOtherTabs(){
-    chrome.runtime.sendMessage({action: "Close Participant"})
+    chrome.runtime.sendMessage({action: "Close Participant"});
 }
 
 function getInstance() {
@@ -112,9 +112,9 @@ function checkIfValidInputAndSend() {
     let email = emailInput.value;
     if (validateEmail(email)) {
         requestParticipantId(name, email);
+        openModeSelectInCurrentTab();
         getInstance().close();
     } else {
-
         emailInput.className = "invalid";
     }
 }
@@ -123,3 +123,4 @@ function validateEmail(email: string) {
     var re = /\S+@\S+\.\S+/;
     return re.test(email);
 }
+

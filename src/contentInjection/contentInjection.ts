@@ -5,27 +5,26 @@ import html from "../html/reminderModal.html"
 var currentDomain = new URL(location.href).hostname;
 var reason: any = null;
 
+setupContent();
 
+function setupContent() {
+    chrome.storage.local.get(['blacklist'], result => {
+        if (result.blacklist.includes(currentDomain)) {
+            createShadowrootAndAddHtml();
+            openModalIfValid();
+        }
+    });
 
-chrome.storage.local.get(['blacklist'], result => {
-    if (result.blacklist.includes(currentDomain)) {
-        createShadowrootAndAddHtml();
-        getAndOpenModal();
-    }
-});
-
+}
 // For tab navigation
 chrome.runtime.onMessage.addListener((message) => {
 
     if (message.action == "Close Intervention Modal") {
-        // @ts-ignore
-        getShadowWrapper().shadowRoot.getElementById('goalInput').value = '';
         getModalInstance().close();
 
     } else if (message.action == "Open Intervention Modal") {
-        getAndOpenModal();
+        openModalIfValid();
     } else if (message.action == "Open Reminder Modal" && (message.url === new URL(location.href).hostname)) {
-        console.log("open remidner message");
         openReminder(message.goal)
     } else if (message.action == "Close Reminder Modal") {
         closeReminder();
@@ -33,19 +32,18 @@ chrome.runtime.onMessage.addListener((message) => {
     }
 });
 
-function getAndOpenModal() {
+
+function openModalIfValid() {
     chrome.storage.local.get(['blacklist', 'baselineFinished', 'mode', 'activeWebsites'], (result) => {
         const currentDomain = new URL(location.href).hostname;
 
         if (result.blacklist.includes(currentDomain) && checkIfBaselineIsFinished(result.baselineFinished) && result.mode && !checkIfAlreadyActive(result, currentDomain)) {
-
             if ((getShadowWrapper() === null)) {
                 createShadowrootAndAddHtml();
             }
 
             if (!getReminderInstance().isOpen) {
-                // @ts-ignore
-                getShadowWrapper().shadowRoot.getElementById('goalInput').value = '';
+
                 var modalInstance = getModalInstance();
 
                 // timeout prevents site from scrolling
@@ -188,12 +186,11 @@ function addButtonFunctionality() {
 }
 
 function addSubmitButtonFunctionality() {
-    let submitButton = getShadowWrapper().shadowRoot.querySelectorAll('.btn')[0];
+    let submitButton = getShadowWrapper().shadowRoot.getElementById('submitButton');
     let goalInput = getShadowRoot().querySelectorAll('#goalInput')[0];
     let timeSelector = getShadowRoot().getElementById('timeSelectValue');
     submitButton.addEventListener('click', function () {
-        console.log(goalInput);
-        console.log(timeSelector);
+
         //@ts-ignore
         setLatestAndPreviousGoals(goalInput.value, timeSelector.value);
         getModalInstance().close();
@@ -211,22 +208,26 @@ function addSubmitButtonFunctionality() {
 
 function addRadioButtonsFunctionality() {
     let radioButtons = getShadowRoot().querySelectorAll("input.with-gap");
-    console.log(radioButtons);
-    let okButton = getShadowRoot().getElementById('OkShadow');
+
     radioButtons.forEach(function (btn) {
         btn.addEventListener('click', () => {
             getReminderInstance().options.dismissible = true;
-            // @ts-ignore
-            okButton.disabled = false;
+
         })
     });
-    okButton.addEventListener('click', closeReminder);
-    okButton.addEventListener('keyup', function (event) {
-        //@ts-ignore
-        if (event.code === 'Enter' && okButton.disabled == false) {
-            closeReminder();
-        }
+
+
+    let cards = getShadowRoot().querySelectorAll('.card-panel');
+
+    cards.forEach(card => {
+        card.addEventListener('click', () => {
+            getReminderInstance().options.dismissible = true;
+            //@ts-ignore
+            getShadowRoot().getElementById(card.id +"Button").checked = true;
+        });
+
     })
+
 }
 
 function closeReminder() {
@@ -246,7 +247,7 @@ function initializeModals() {
         onCloseEnd: () => {
             setReason();
             unCheckRadioButtons();
-            openInputModalWithValue();
+            openModalIfValid();
             closeReminderInOtherTabs();
         }
     });
@@ -259,6 +260,7 @@ function unCheckRadioButtons() {
         btn.checked = false;
     });
     getReminderInstance().options.dismissible = false;
+
 }
 
 function getShadowWrapper() {
@@ -281,12 +283,6 @@ function setReason() {
     });
 }
 
-function openInputModalWithValue(){
-    let reminderValue = getShadowRoot().getElementById('goalSpan').innerText;
-    //@ts-ignore
-    getShadowWrapper().shadowRoot.getElementById('goalInput').value = reminderValue;
-    getModalInstance().open();
-}
 
 function closeReminderInOtherTabs() {
     chrome.runtime.sendMessage({
