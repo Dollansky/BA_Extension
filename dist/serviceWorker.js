@@ -716,8 +716,6 @@ var __webpack_exports__ = {};
 
 
 
-var today = new Date();
-chrome.storage.local.set({ baselineFinished: [today.getUTCDate(), today.getUTCMonth(), today.getUTCFullYear()] });
 chrome.tabs.onUpdated.addListener(function (res) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
         if (tab[0]) {
