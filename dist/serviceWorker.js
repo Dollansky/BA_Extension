@@ -784,27 +784,12 @@ function setModeSelection(message) {
     }
 }
 function setUpAfterStartUp() {
-    var today = new Date();
-    chrome.storage.local.set({ baselineFinished: [today.getUTCDate(), today.getUTCMonth(), today.getUTCFullYear()] });
     chrome.storage.local.set({ startTimeIntervall: new Date().getTime() });
     chrome.storage.local.set({ lastDomain: "StartUp" });
     chrome.storage.local.set({ activeWebsites: [] });
     chrome.storage.local.set({ atLeastOne: null });
     routineCheck();
 }
-// Won´t be used cause it switches state while watching a video <- Data cleanup will probably be necessary
-// chrome.idle.setDetectionInterval(120);
-//
-// chrome.idle.onStateChanged.addListener((r) =>{
-//     console.log(r);
-//     console.log(r === "idle")
-//     if(r === "idle"){
-//         checkDomain("http://idle.com/",1)
-//     }
-//     if( r === "active"){
-//         chrome.storage.local.set({startTimeIntervall: new Date().getTime()});
-//     }
-// })
 function routineCheck() {
     chrome.storage.local.get(['dateWhenModeEnds'], function (result) {
         if ((0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_2__/* .checkIfModeActive */ .$N)(result.dateWhenModeEnds)) {
