@@ -393,7 +393,7 @@ function initializeModals() {
         }
     });
     M.Modal.init(getShadowRoot().getElementById('reminderModal'), {
-        dismissible: true,
+        dismissible: false,
         onCloseEnd: function () {
             setReason();
             unCheckRadioButtons();

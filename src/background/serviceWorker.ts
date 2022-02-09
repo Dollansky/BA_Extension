@@ -100,6 +100,7 @@ function setUpAfterStartUp() {
 }
 
 
+
 function routineCheck() {
 
     chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
