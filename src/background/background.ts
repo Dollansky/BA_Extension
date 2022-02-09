@@ -119,22 +119,13 @@ export function openOrCloseModalOnEveryTab(hostname: string, message: any, actio
 
 }
 
-export function findGoalAndOpenReminder(hostname: string) {
-    chrome.storage.local.get(['activeWebsites'],(result) => {
-        result.activeWebsites.forEach((obj: any) => {
-            if (obj.hostname === hostname) {
-                openOrCloseModalOnEveryTab(hostname, {hostname: hostname, goal: obj.goal}, "Open Reminder Modal")
-            }
-        })
-    })
-}
 
 export function updateActiveWebsitesAndCreateAlarm(hostname: string, reminderDuration: number, message: any, tabId: number) {
 
     addNewActiveWebsite(hostname, Date.now() + reminderDuration, message, tabId);
     openOrCloseModalOnEveryTab(hostname, message, "Close Intervention Modal");
 
-    chrome.alarms.create("Goal Setting Extension: "+ hostname,{delayInMinutes: reminderDuration / 60000 });
+    chrome.alarms.create("Goal Setting Extension/"+ hostname+"/"+message.goal ,{delayInMinutes: reminderDuration / 60000 });
 
 }
 
@@ -154,10 +145,10 @@ export function addNewActiveWebsite(hostname: string, reminderExpiration: number
 export function removeActiveWebsite(hostname: string) {
     let buffer = 0;
     if(hostname == ""){
-        buffer = 4000;
+        buffer = 2000;
     }
-    chrome.storage.local.get(['activeWebsites'], (result) => {
 
+    chrome.storage.local.get(['activeWebsites'], (result) => {
         let updatedActiveWebsites: Array<string> = [];
         result.activeWebsites.forEach((obj: any) => {
             if (obj.hostname !== hostname && obj.reminderRunning + buffer > Date.now()) {

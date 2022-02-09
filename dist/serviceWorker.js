@@ -8,7 +8,6 @@
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "Ng": () => (/* binding */ checkDomain),
 /* harmony export */   "UW": () => (/* binding */ openOrCloseModalOnEveryTab),
-/* harmony export */   "Ty": () => (/* binding */ findGoalAndOpenReminder),
 /* harmony export */   "Pp": () => (/* binding */ updateActiveWebsitesAndCreateAlarm),
 /* harmony export */   "il": () => (/* binding */ removeActiveWebsite)
 /* harmony export */ });
@@ -102,19 +101,10 @@ function openOrCloseModalOnEveryTab(hostname, message, action) {
         });
     });
 }
-function findGoalAndOpenReminder(hostname) {
-    chrome.storage.local.get(['activeWebsites'], function (result) {
-        result.activeWebsites.forEach(function (obj) {
-            if (obj.hostname === hostname) {
-                openOrCloseModalOnEveryTab(hostname, { hostname: hostname, goal: obj.goal }, "Open Reminder Modal");
-            }
-        });
-    });
-}
 function updateActiveWebsitesAndCreateAlarm(hostname, reminderDuration, message, tabId) {
     addNewActiveWebsite(hostname, Date.now() + reminderDuration, message, tabId);
     openOrCloseModalOnEveryTab(hostname, message, "Close Intervention Modal");
-    chrome.alarms.create("Goal Setting Extension: " + hostname, { delayInMinutes: reminderDuration / 60000 });
+    chrome.alarms.create("Goal Setting Extension/" + hostname + "/" + message.goal, { delayInMinutes: reminderDuration / 60000 });
 }
 function addNewActiveWebsite(hostname, reminderExpiration, message, tabId) {
     chrome.storage.local.get(['activeWebsites'], function (result) {
@@ -130,7 +120,7 @@ function addNewActiveWebsite(hostname, reminderExpiration, message, tabId) {
 function removeActiveWebsite(hostname) {
     var buffer = 0;
     if (hostname == "") {
-        buffer = 4000;
+        buffer = 2000;
     }
     chrome.storage.local.get(['activeWebsites'], function (result) {
         var updatedActiveWebsites = [];
@@ -766,9 +756,10 @@ chrome.runtime.onMessage.addListener(function (message, sender) {
     }
 });
 chrome.alarms.onAlarm.addListener(function (alarm) {
-    if (alarm.name.startsWith("Goal Setting Extension: ")) {
-        var hostname = alarm.name.slice(24);
-        (0,_background__WEBPACK_IMPORTED_MODULE_1__/* .findGoalAndOpenReminder */ .Ty)(hostname);
+    var splitAlarm = alarm.name.split("/");
+    if (splitAlarm[0] == "Goal Setting Extension") {
+        var hostname = splitAlarm[1];
+        (0,_background__WEBPACK_IMPORTED_MODULE_1__/* .openOrCloseModalOnEveryTab */ .UW)(hostname, { hostname: hostname, goal: splitAlarm[2] }, "Open Reminder Modal");
         (0,_background__WEBPACK_IMPORTED_MODULE_1__/* .removeActiveWebsite */ .il)(hostname);
         chrome.alarms.clear(alarm.name);
     }

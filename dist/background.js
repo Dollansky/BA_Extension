@@ -227,7 +227,7 @@ var TimeIntervallDto = /** @class */ (function () {
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-/* unused harmony exports checkDomain, checkIfCriticalDataIsUndefined, sendIntervallAndGetGoal, sendIntervall, openOrCloseModalOnEveryTab, findGoalAndOpenReminder, updateActiveWebsitesAndCreateAlarm, addNewActiveWebsite, removeActiveWebsite */
+/* unused harmony exports checkDomain, checkIfCriticalDataIsUndefined, sendIntervallAndGetGoal, sendIntervall, openOrCloseModalOnEveryTab, updateActiveWebsitesAndCreateAlarm, addNewActiveWebsite, removeActiveWebsite */
 /* harmony import */ var _models_TimeIntervall__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(709);
 /* harmony import */ var _exportedFunctions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(144);
 
@@ -317,19 +317,10 @@ function openOrCloseModalOnEveryTab(hostname, message, action) {
         });
     });
 }
-function findGoalAndOpenReminder(hostname) {
-    chrome.storage.local.get(['activeWebsites'], function (result) {
-        result.activeWebsites.forEach(function (obj) {
-            if (obj.hostname === hostname) {
-                openOrCloseModalOnEveryTab(hostname, { hostname: hostname, goal: obj.goal }, "Open Reminder Modal");
-            }
-        });
-    });
-}
 function updateActiveWebsitesAndCreateAlarm(hostname, reminderDuration, message, tabId) {
     addNewActiveWebsite(hostname, Date.now() + reminderDuration, message, tabId);
     openOrCloseModalOnEveryTab(hostname, message, "Close Intervention Modal");
-    chrome.alarms.create("Goal Setting Extension: " + hostname, { delayInMinutes: reminderDuration / 60000 });
+    chrome.alarms.create("Goal Setting Extension/" + hostname + "/" + message.goal, { delayInMinutes: reminderDuration / 60000 });
 }
 function addNewActiveWebsite(hostname, reminderExpiration, message, tabId) {
     chrome.storage.local.get(['activeWebsites'], function (result) {
@@ -345,7 +336,7 @@ function addNewActiveWebsite(hostname, reminderExpiration, message, tabId) {
 function removeActiveWebsite(hostname) {
     var buffer = 0;
     if (hostname == "") {
-        buffer = 4000;
+        buffer = 2000;
     }
     chrome.storage.local.get(['activeWebsites'], function (result) {
         var updatedActiveWebsites = [];

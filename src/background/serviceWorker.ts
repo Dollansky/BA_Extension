@@ -1,13 +1,12 @@
 import {checkIfParticipantIdSet, onInstalledDo} from "./onInstallationSetup";
 import {
-    checkDomain, findGoalAndOpenReminder,
+    checkDomain,
     openOrCloseModalOnEveryTab, removeActiveWebsite,
     updateActiveWebsitesAndCreateAlarm
 } from "./background";
 import {checkIfModeActive, sendMessageToEveryTab, setIcon, updateIconTimer} from "./exportedFunctions";
 import {calcDateWhenModeEnds, handleModeChange, sendMode, setModeAlarm} from "./modeSelection";
 import {sendGoalAndSaveId} from "./goalHandler";
-
 
 
 
@@ -61,9 +60,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name.startsWith("Goal Setting Extension: ")) {
-        let hostname = alarm.name.slice(24);
-        findGoalAndOpenReminder(hostname);
+    let splitAlarm = alarm.name.split("/");
+    if (splitAlarm[0] == "Goal Setting Extension") {
+        let hostname = splitAlarm[1]
+        openOrCloseModalOnEveryTab(hostname, {hostname: hostname, goal: splitAlarm[2]}, "Open Reminder Modal")
         removeActiveWebsite(hostname);
         chrome.alarms.clear(alarm.name);
     } else if(alarm.name == "No Mode"){
@@ -119,7 +119,6 @@ function setUpAfterStartUp() {
 // })
 
 function routineCheck() {
-
 
     chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
         if (checkIfModeActive(result.dateWhenModeEnds)) {
