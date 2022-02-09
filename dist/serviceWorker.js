@@ -190,7 +190,7 @@ function updateIconTimer() {
         var timeTillModeEnds = calcIconTimer(result.dateWhenModeEnds);
         if (timeTillModeEnds != null) {
             if (timeTillModeEnds[0] != "-") {
-                chrome.action.setBadgeText({ text: timeTillModeEnds });
+                chrome.browserAction.setBadgeText({ text: timeTillModeEnds });
             }
             if (timeTillModeEnds.substr(timeTillModeEnds.length - 3) === 'sec') {
                 setTimeout(function () {
@@ -221,10 +221,10 @@ function calcIconTimer(dateWhenModeEnds) {
 function setIcon() {
     chrome.storage.local.get(['mode'], function (result) {
         if (result.mode === false) {
-            chrome.action.setIcon({ path: 'img/break.png' });
+            chrome.browserAction.setIcon({ path: 'img/break.png' });
         }
         else if (result.mode === true) {
-            chrome.action.setIcon({ path: 'img/work.png' });
+            chrome.browserAction.setIcon({ path: 'img/work.png' });
         }
     });
 }
@@ -250,7 +250,7 @@ function onInstalledDo() {
         if (result.blacklist == undefined) {
             var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({ blacklist: blacklist });
-            chrome.action.setIcon({ path: 'img/work.png' });
+            chrome.browserAction.setIcon({ path: 'img/work.png' });
             chrome.bookmarks.create({
                 parentId: '1',
                 title: 'Options for Goal Setting Extension',
@@ -459,7 +459,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
     if (result.blacklist == undefined) {
         var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
         chrome.storage.local.set({ blacklist: blacklist });
-        chrome.action.setIcon({ path: 'img/work.png' });
+        chrome.browserAction.setIcon({ path: 'img/work.png' });
         chrome.bookmarks.create({ parentId: '1', title: 'Blacklist Extension', url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
     }
     if (result.baselineFinished === undefined || result.baselineFinished == null) {
@@ -487,7 +487,7 @@ function onInstalledDo() {
         if (result.blacklist == undefined) {
             var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({ blacklist: blacklist });
-            chrome.action.setIcon({ path: 'img/work.png' });
+            chrome.browserAction.setIcon({ path: 'img/work.png' });
             chrome.bookmarks.create({
                 parentId: '1',
                 title: 'Options for Goal Setting Extension',
@@ -716,6 +716,8 @@ var __webpack_exports__ = {};
 
 
 
+var today = new Date();
+chrome.storage.local.set({ baselineFinished: [today.getUTCDate(), today.getUTCMonth(), today.getUTCFullYear()] });
 chrome.tabs.onUpdated.addListener(function (res) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
         if (tab[0]) {

@@ -16,7 +16,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastD
     if (result.blacklist == undefined) {
         const blacklist: Array<string> = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
         chrome.storage.local.set({blacklist: blacklist});
-        chrome.action.setIcon({path: 'img/work.png'});
+        chrome.browserAction.setIcon({path: 'img/work.png'});
         chrome.bookmarks.create({ parentId: '1', title: 'Blacklist Extension', url: browserUrl + 'options/options.html' });
     }
     if (result.baselineFinished === undefined || result.baselineFinished == null) {
@@ -45,7 +45,7 @@ export function onInstalledDo() {
         if (result.blacklist == undefined) {
             const blacklist: Array<string> = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({blacklist: blacklist});
-            chrome.action.setIcon({path: 'img/work.png'});
+            chrome.browserAction.setIcon({path: 'img/work.png'});
             chrome.bookmarks.create({
                 parentId: '1',
                 title: 'Options for Goal Setting Extension',

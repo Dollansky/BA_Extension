@@ -9,6 +9,7 @@ import {calcDateWhenModeEnds, handleModeChange, sendMode, setModeAlarm} from "./
 import {sendGoalAndSaveId} from "./goalHandler";
 
 
+
 chrome.tabs.onUpdated.addListener((res) => {
     chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
         if (tab[0]) {
