@@ -277,7 +277,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
         (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .sendMessageToEveryTab */ .mU)("Open Mode Select");
     }
     if (result.dateWhenModeEnds == undefined) {
-        chrome.storage.local.set({ dateWhenModeEnds: 0 });
+        chrome.storage.local.set({ dateWhenModeEnds: Date.now() + 100000 });
     }
 });
 function onInstalledDo() {

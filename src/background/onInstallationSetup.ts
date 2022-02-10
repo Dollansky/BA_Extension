@@ -36,7 +36,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastD
         sendMessageToEveryTab("Open Mode Select");
     }
     if(result.dateWhenModeEnds == undefined){
-        chrome.storage.local.set( {dateWhenModeEnds: 0})
+        chrome.storage.local.set( {dateWhenModeEnds: Date.now() + 100000})
     }
 })
 

@@ -479,7 +479,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
         (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .sendMessageToEveryTab */ .mU)("Open Mode Select");
     }
     if (result.dateWhenModeEnds == undefined) {
-        chrome.storage.local.set({ dateWhenModeEnds: 0 });
+        chrome.storage.local.set({ dateWhenModeEnds: Date.now() + 100000 });
     }
 });
 function onInstalledDo() {
@@ -716,6 +716,9 @@ var __webpack_exports__ = {};
 
 
 
+chrome.runtime.onInstalled.addListener(function (details) {
+    (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .onInstalledDo */ .n)();
+});
 chrome.tabs.onUpdated.addListener(function (res) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
         if (tab[0]) {
@@ -723,16 +726,6 @@ chrome.tabs.onUpdated.addListener(function (res) {
         }
     });
     routineCheck();
-});
-chrome.tabs.onActivated.addListener(function (e) {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
-        if (tab[0]) {
-            (0,_background__WEBPACK_IMPORTED_MODULE_1__/* .checkDomain */ .Ng)(tab[0].url, tab[0].id);
-        }
-    });
-});
-chrome.runtime.onInstalled.addListener(function (details) {
-    (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .onInstalledDo */ .n)();
 });
 chrome.runtime.onMessage.addListener(function (message, sender) {
     if (message.action == "Set Reminder") {
