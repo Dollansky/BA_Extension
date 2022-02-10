@@ -10,8 +10,6 @@
 /* harmony export */   "mU": () => (/* binding */ sendMessageToEveryTab)
 /* harmony export */ });
 /* unused harmony exports serverUrl, checkIfModeActive, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
-// Webpack imports whole file this is a workaround
-// export const serverUrl = "nurdamitsgeht";
 var serverUrl = "http://217.160.214.199:8080/api/";
 var browserUrl = chrome.runtime.getURL("");
 function checkIfModeActive(dateWhenModeEnds) {

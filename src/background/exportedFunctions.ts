@@ -1,10 +1,8 @@
-// Webpack imports whole file this is a workaround
 
-// export const serverUrl = "nurdamitsgeht";
+
+
 
 export const serverUrl = "http://217.160.214.199:8080/api/";
-
-
 export const browserUrl = chrome.runtime.getURL("");
 
 

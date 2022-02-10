@@ -54,7 +54,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         chrome.runtime.sendMessage({action: "firstInstall"});
     }
 
-
 });
 
 
@@ -79,6 +78,7 @@ chrome.runtime.onStartup.addListener(() => {
 function setModeSelection(message: any) {
     let dateWhenModeEnds = calcDateWhenModeEnds(message.time);
     if (dateWhenModeEnds != null) {
+
         chrome.storage.local.set({mode: message.mode});
         handleModeChange(message.mode);
         chrome.storage.local.set({dateWhenModeEnds: dateWhenModeEnds});
@@ -87,6 +87,7 @@ function setModeSelection(message: any) {
         setModeAlarm(dateWhenModeEnds);
         sendMessageToEveryTab("Close Mode Select");
         sendMode(message.mode, dateWhenModeEnds, (dateWhenModeEnds - Date.now()));
+
     }
 }
 
@@ -100,7 +101,6 @@ function setUpAfterStartUp() {
 
 
 function routineCheck() {
-
     chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
         if (checkIfModeActive(result.dateWhenModeEnds)) {
             setIcon();
