@@ -8,6 +8,9 @@ import {checkIfModeActive, sendMessageToEveryTab, setIcon, updateIconTimer} from
 import {calcDateWhenModeEnds, handleModeChange, sendMode, setModeAlarm} from "./modeSelection";
 import {sendGoalAndSaveId} from "./goalHandler";
 
+chrome.runtime.onInstalled.addListener((details) => {
+    onInstalledDo();
+})
 
 chrome.tabs.onUpdated.addListener((res) => {
     chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
@@ -18,17 +21,6 @@ chrome.tabs.onUpdated.addListener((res) => {
     routineCheck();
 })
 
-chrome.tabs.onActivated.addListener((e) => {
-    chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
-        if (tab[0]) {
-            checkDomain(tab[0].url, tab[0].id)
-        }
-    })
-})
-
-chrome.runtime.onInstalled.addListener((details) => {
-    onInstalledDo();
-})
 
 chrome.runtime.onMessage.addListener((message, sender) => {
     if (message.action == "Set Reminder") {
