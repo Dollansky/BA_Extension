@@ -2,7 +2,6 @@
 import {
     browserUrl,
     checkIfParticipantIdIsSet,
-    fetchParticipantId,
     sendMessageToEveryTab,
     serverUrl,
     setIcon,
@@ -89,16 +88,14 @@ export function onInstalledDo() {
 }
 
 
-async function createParticipant(name: string, email: string) {
+export async function createParticipant() {
 
-    let participant: Participant = new Participant(name, email);
 
     fetch(serverUrl + "participant/create", {
         method: 'post',
         headers: {
             "Content-type": "application/json"
         },
-        body: JSON.stringify(participant)
     }).then(response=> response.text())
         .then(data => {
             setParticipantId(data)
@@ -117,7 +114,7 @@ function setParticipantId(participantId: string){
 export function checkIfParticipantIdSet(name: string, email: string) {
     chrome.storage.local.get(['participantId'], (result) => {
         if(result.participantId == undefined || result.participantId == ""){
-            createParticipant(name, email);
+            createParticipant();
         }
     })
 }

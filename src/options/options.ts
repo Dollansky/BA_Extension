@@ -4,7 +4,6 @@ import {checkIfParticipantIdIsSet, participantId, serverUrl} from "../background
 import {BlackList} from "../models/BlackList.ts";
 
 
-
 let blacklist: Array<string>;
 let previousGoals: Array<string>;
 
@@ -16,8 +15,17 @@ function openHelp() {
     insModal.open();
 }
 
+function addParticipantId(participantId: string) {
+    let div = document.getElementById('participantIdDiv');
+    let h4 = document.createElement('h5');
+    h4.innerText = "Teilnehmer ID:" + '\n' +  participantId;
+
+    div.append(h4);
+
+}
+
 function setUpBlacklist() {
-    chrome.storage.local.get(['blacklist', 'previousGoals', 'instructionCheck'], (result) => {
+    chrome.storage.local.get(['blacklist', 'previousGoals', 'instructionCheck', 'participantId'], (result) => {
 
         let listContainer = document.getElementById('blacklist')
         let listElement = document.createElement('ul');
@@ -25,6 +33,7 @@ function setUpBlacklist() {
         blacklist = result.blacklist;
         previousGoals = result.previousGoals;
 
+        addParticipantId(result.participantId);
 
         blacklist.forEach(function (domain) {
             addToTable(domain);
@@ -163,9 +172,8 @@ function addToTable(domain: string) {
 }
 
 
-
 chrome.runtime.onMessage.addListener((message) => {
-    if(message.action == "firstInstall"){
+    if (message.action == "firstInstall") {
         openHelp();
     }
 });

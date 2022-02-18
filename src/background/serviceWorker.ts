@@ -46,7 +46,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
         chrome.runtime.sendMessage({action: "firstInstall"});
     }
 
-
 });
 
 
@@ -93,7 +92,6 @@ function setUpAfterStartUp() {
 
 
 function routineCheck() {
-
     chrome.storage.local.get(['dateWhenModeEnds'], (result) => {
         if (checkIfModeActive(result.dateWhenModeEnds)) {
             setIcon();

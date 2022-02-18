@@ -1,10 +1,7 @@
-// Webpack imports whole file this is a workaround
+import {createParticipant} from "./onInstallationSetup";
 
-// export const serverUrl = "nurdamitsgeht";
 
 export const serverUrl = "http://217.160.214.199:8080/api/";
-
-
 export const browserUrl = chrome.runtime.getURL("");
 
 
@@ -91,20 +88,10 @@ export function setIcon() {
     })
 }
 
-export function fetchParticipantId() {
-    chrome.tabs.query({active: true, currentWindow: true},
-        function (activeTab) {
-            chrome.tabs.sendMessage(activeTab[0].id, {
-                action: "Create Participant"
-            })
-        });
-}
-
-
 export function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], (result) => {
         if (result.participantId == undefined) {
-            fetchParticipantId();
+            createParticipant();
         } else {
             return result.participantId;
         }
@@ -147,7 +134,7 @@ export function onInstalledDo() {
         }
 
         if (result.participantId == undefined) {
-            fetchParticipantId();
+            createParticipant();
         }
     })
 }

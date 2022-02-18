@@ -9,9 +9,9 @@
 /* harmony export */   "Kk": () => (/* binding */ browserUrl),
 /* harmony export */   "mU": () => (/* binding */ sendMessageToEveryTab)
 /* harmony export */ });
-/* unused harmony exports serverUrl, checkIfModeActive, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, fetchParticipantId, checkIfParticipantIdIsSet, onInstalledDo */
-// Webpack imports whole file this is a workaround
-// export const serverUrl = "nurdamitsgeht";
+/* unused harmony exports serverUrl, checkIfModeActive, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, checkIfParticipantIdIsSet, onInstalledDo */
+/* harmony import */ var _onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(765);
+
 var serverUrl = "http://217.160.214.199:8080/api/";
 var browserUrl = chrome.runtime.getURL("");
 function checkIfModeActive(dateWhenModeEnds) {
@@ -88,17 +88,10 @@ function setIcon() {
         }
     });
 }
-function fetchParticipantId() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (activeTab) {
-        chrome.tabs.sendMessage(activeTab[0].id, {
-            action: "Create Participant"
-        });
-    });
-}
 function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
-            fetchParticipantId();
+            createParticipant();
         }
         else {
             return result.participantId;
@@ -138,7 +131,7 @@ function onInstalledDo() {
             chrome.storage.local.set({ dateWhenModeEnds: 0 });
         }
         if (result.participantId == undefined) {
-            fetchParticipantId();
+            createParticipant();
         }
     });
 }
@@ -146,73 +139,11 @@ function onInstalledDo() {
 
 /***/ }),
 
-/***/ 642:
+/***/ 765:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-/* unused harmony export Participant */
-var Participant = /** @class */ (function () {
-    function Participant(name, email) {
-        this.name = name;
-        this.email = email;
-    }
-    return Participant;
-}());
-
-
-
-/***/ })
-
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-/* unused harmony exports onInstalledDo, checkIfParticipantIdSet */
+/* unused harmony exports onInstalledDo, createParticipant, checkIfParticipantIdSet */
 /* harmony import */ var _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
-/* harmony import */ var _createParticipant_Participant__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -249,8 +180,6 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-//@ts-ignore
-
 //@ts-ignore
 
 chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds'], function (result) {
@@ -322,17 +251,14 @@ function onInstalledDo() {
         }
     });
 }
-function createParticipant(name, email) {
+function createParticipant() {
     return __awaiter(this, void 0, void 0, function () {
-        var participant;
         return __generator(this, function (_a) {
-            participant = new Participant(name, email);
             fetch(serverUrl + "participant/create", {
                 method: 'post',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify(participant)
             }).then(function (response) { return response.text(); })
                 .then(function (data) {
                 setParticipantId(data);
@@ -349,12 +275,64 @@ function setParticipantId(participantId) {
 function checkIfParticipantIdSet(name, email) {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined || result.participantId == "") {
-            createParticipant(name, email);
+            createParticipant();
         }
     });
 }
 
-})();
 
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__(765);
+/******/ 	
 /******/ })()
 ;
