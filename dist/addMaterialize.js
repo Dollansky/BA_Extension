@@ -241,9 +241,12 @@ function onInstalledDo() {
             chrome.storage.local.set({ dateWhenModeEnds: 0 });
         }
         if (result.participantId == undefined) {
-            chrome.tabs.create({ url: browserUrl + 'options/options.html' });
+            checkIfParticipantIdIsSet();
             setTimeout(function () {
-                checkIfParticipantIdIsSet();
+                chrome.tabs.create({ url: browserUrl + 'options/options.html' });
+                setTimeout(function () {
+                    chrome.runtime.sendMessage({ action: "firstInstall" });
+                }, 100);
             }, 1000);
         }
         if (result.startTimeIntervall == undefined) {

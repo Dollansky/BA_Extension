@@ -505,9 +505,12 @@ function onInstalledDo() {
             chrome.storage.local.set({ dateWhenModeEnds: 0 });
         }
         if (result.participantId == undefined) {
-            chrome.tabs.create({ url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
+            (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .checkIfParticipantIdIsSet */ .$T)();
             setTimeout(function () {
-                (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .checkIfParticipantIdIsSet */ .$T)();
+                chrome.tabs.create({ url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
+                setTimeout(function () {
+                    chrome.runtime.sendMessage({ action: "firstInstall" });
+                }, 100);
             }, 1000);
         }
         if (result.startTimeIntervall == undefined) {
