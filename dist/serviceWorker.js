@@ -510,7 +510,7 @@ function onInstalledDo() {
                 chrome.tabs.create({ url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
                 setTimeout(function () {
                     chrome.runtime.sendMessage({ action: "firstInstall" });
-                }, 100);
+                }, 500);
             }, 1000);
         }
         if (result.startTimeIntervall == undefined) {

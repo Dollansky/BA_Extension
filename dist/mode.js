@@ -246,7 +246,7 @@ function onInstalledDo() {
                 chrome.tabs.create({ url: browserUrl + 'options/options.html' });
                 setTimeout(function () {
                     chrome.runtime.sendMessage({ action: "firstInstall" });
-                }, 100);
+                }, 500);
             }, 1000);
         }
         if (result.startTimeIntervall == undefined) {

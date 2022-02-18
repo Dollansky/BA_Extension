@@ -80,7 +80,7 @@ export function onInstalledDo() {
                 chrome.tabs.create({url: browserUrl + 'options/options.html'});
                 setTimeout(() => {
                     chrome.runtime.sendMessage({action: "firstInstall"});
-                }, 100)
+                }, 500)
             }, 1000)
         }
 
