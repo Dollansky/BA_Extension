@@ -41,10 +41,6 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     if (message.action == "Send Participant") {
         checkIfParticipantIdSet(message.name, message.email);
     }
-    if (message.action == "Close Participant") {
-        sendMessageToEveryTab("Close Participant Modal");
-        chrome.runtime.sendMessage({action: "firstInstall"});
-    }
 
 });
 

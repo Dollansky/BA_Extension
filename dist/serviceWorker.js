@@ -149,9 +149,9 @@ function removeActiveWebsite(hostname) {
 /* harmony export */   "Bf": () => (/* binding */ setIcon),
 /* harmony export */   "$T": () => (/* binding */ checkIfParticipantIdIsSet)
 /* harmony export */ });
-/* unused harmony exports openModeSelectInCurrentTab, calcIconTimer, fetchParticipantId, onInstalledDo */
-// Webpack imports whole file this is a workaround
-// export const serverUrl = "nurdamitsgeht";
+/* unused harmony exports openModeSelectInCurrentTab, calcIconTimer, onInstalledDo */
+/* harmony import */ var _onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(765);
+
 var serverUrl = "http://217.160.214.199:8080/api/";
 var browserUrl = chrome.runtime.getURL("");
 function checkIfModeActive(dateWhenModeEnds) {
@@ -228,17 +228,10 @@ function setIcon() {
         }
     });
 }
-function fetchParticipantId() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function (activeTab) {
-        chrome.tabs.sendMessage(activeTab[0].id, {
-            action: "Create Participant"
-        });
-    });
-}
 function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined) {
-            fetchParticipantId();
+            (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .createParticipant */ .Yn)();
         }
         else {
             return result.participantId;
@@ -278,7 +271,7 @@ function onInstalledDo() {
             chrome.storage.local.set({ dateWhenModeEnds: 0 });
         }
         if (result.participantId == undefined) {
-            fetchParticipantId();
+            createParticipant();
         }
     });
 }
@@ -410,11 +403,11 @@ function calcDateWhenModeEnds(time) {
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "n": () => (/* binding */ onInstalledDo),
-/* harmony export */   "y": () => (/* binding */ checkIfParticipantIdSet)
+/* harmony export */   "nG": () => (/* binding */ onInstalledDo),
+/* harmony export */   "Yn": () => (/* binding */ createParticipant),
+/* harmony export */   "yP": () => (/* binding */ checkIfParticipantIdSet)
 /* harmony export */ });
 /* harmony import */ var _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(144);
-/* harmony import */ var _createParticipant_Participant__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -451,8 +444,6 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-//@ts-ignore
-
 //@ts-ignore
 
 chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds'], function (result) {
@@ -514,9 +505,12 @@ function onInstalledDo() {
             chrome.storage.local.set({ dateWhenModeEnds: 0 });
         }
         if (result.participantId == undefined) {
-            chrome.tabs.create({ url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
+            (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .checkIfParticipantIdIsSet */ .$T)();
             setTimeout(function () {
-                (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .checkIfParticipantIdIsSet */ .$T)();
+                chrome.tabs.create({ url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
+                setTimeout(function () {
+                    chrome.runtime.sendMessage({ action: "firstInstall" });
+                }, 100);
             }, 1000);
         }
         if (result.startTimeIntervall == undefined) {
@@ -524,17 +518,14 @@ function onInstalledDo() {
         }
     });
 }
-function createParticipant(name, email) {
+function createParticipant() {
     return __awaiter(this, void 0, void 0, function () {
-        var participant;
         return __generator(this, function (_a) {
-            participant = new _createParticipant_Participant__WEBPACK_IMPORTED_MODULE_1__/* .Participant */ .Q(name, email);
             fetch(_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .serverUrl */ .KB + "participant/create", {
                 method: 'post',
                 headers: {
                     "Content-type": "application/json"
                 },
-                body: JSON.stringify(participant)
             }).then(function (response) { return response.text(); })
                 .then(function (data) {
                 setParticipantId(data);
@@ -551,28 +542,10 @@ function setParticipantId(participantId) {
 function checkIfParticipantIdSet(name, email) {
     chrome.storage.local.get(['participantId'], function (result) {
         if (result.participantId == undefined || result.participantId == "") {
-            createParticipant(name, email);
+            createParticipant();
         }
     });
 }
-
-
-/***/ }),
-
-/***/ 642:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "Q": () => (/* binding */ Participant)
-/* harmony export */ });
-var Participant = /** @class */ (function () {
-    function Participant(name, email) {
-        this.name = name;
-        this.email = email;
-    }
-    return Participant;
-}());
-
 
 
 /***/ }),
@@ -717,7 +690,7 @@ var __webpack_exports__ = {};
 
 
 chrome.runtime.onInstalled.addListener(function (details) {
-    (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .onInstalledDo */ .n)();
+    (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .onInstalledDo */ .nG)();
 });
 chrome.tabs.onUpdated.addListener(function (res) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
@@ -741,11 +714,7 @@ chrome.runtime.onMessage.addListener(function (message, sender) {
         setModeSelection(message);
     }
     if (message.action == "Send Participant") {
-        (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .checkIfParticipantIdSet */ .y)(message.name, message.email);
-    }
-    if (message.action == "Close Participant") {
-        (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_2__/* .sendMessageToEveryTab */ .mU)("Close Participant Modal");
-        chrome.runtime.sendMessage({ action: "firstInstall" });
+        (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .checkIfParticipantIdSet */ .yP)(message.name, message.email);
     }
 });
 chrome.alarms.onAlarm.addListener(function (alarm) {

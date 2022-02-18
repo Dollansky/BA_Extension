@@ -25,7 +25,7 @@ function addParticipantId(participantId: string) {
 }
 
 function setUpBlacklist() {
-    chrome.storage.local.get(['blacklist', 'previousGoals', 'instructionCheck', 'participantId'], (result) => {
+    chrome.storage.local.get(['blacklist', 'previousGoals',  'participantId'], (result) => {
 
         let listContainer = document.getElementById('blacklist')
         let listElement = document.createElement('ul');

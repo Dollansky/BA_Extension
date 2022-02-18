@@ -75,9 +75,12 @@ export function onInstalledDo() {
         }
 
         if (result.participantId == undefined) {
-            chrome.tabs.create({url: browserUrl + 'options/options.html'});
+            checkIfParticipantIdIsSet()
             setTimeout(() => {
-                checkIfParticipantIdIsSet()
+                chrome.tabs.create({url: browserUrl + 'options/options.html'});
+                setTimeout(() => {
+                    chrome.runtime.sendMessage({action: "firstInstall"});
+                }, 100)
             }, 1000)
         }
 

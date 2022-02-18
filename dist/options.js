@@ -187,7 +187,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
     if (result.blacklist == undefined) {
         var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
         chrome.storage.local.set({ blacklist: blacklist });
-        chrome.action.setIcon({ path: 'img/work.png' });
+        chrome.browserAction.setIcon({ path: 'img/work.png' });
         chrome.bookmarks.create({ parentId: '1', title: 'Blacklist Extension', url: _exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .browserUrl */ .Kk + 'options/options.html' });
     }
     if (result.baselineFinished === undefined || result.baselineFinished == null) {
@@ -207,7 +207,7 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
         (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .sendMessageToEveryTab */ .mU)("Open Mode Select");
     }
     if (result.dateWhenModeEnds == undefined) {
-        chrome.storage.local.set({ dateWhenModeEnds: 0 });
+        chrome.storage.local.set({ dateWhenModeEnds: Date.now() + 100000 });
     }
 });
 function onInstalledDo() {
@@ -215,7 +215,7 @@ function onInstalledDo() {
         if (result.blacklist == undefined) {
             var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({ blacklist: blacklist });
-            chrome.action.setIcon({ path: 'img/work.png' });
+            chrome.browserAction.setIcon({ path: 'img/work.png' });
             chrome.bookmarks.create({
                 parentId: '1',
                 title: 'Options for Goal Setting Extension',
@@ -242,9 +242,12 @@ function onInstalledDo() {
             chrome.storage.local.set({ dateWhenModeEnds: 0 });
         }
         if (result.participantId == undefined) {
-            chrome.tabs.create({ url: browserUrl + 'options/options.html' });
+            checkIfParticipantIdIsSet();
             setTimeout(function () {
-                checkIfParticipantIdIsSet();
+                chrome.tabs.create({ url: browserUrl + 'options/options.html' });
+                setTimeout(function () {
+                    chrome.runtime.sendMessage({ action: "firstInstall" });
+                }, 100);
             }, 1000);
         }
         if (result.startTimeIntervall == undefined) {
@@ -371,7 +374,7 @@ function addParticipantId(participantId) {
     div.append(h4);
 }
 function setUpBlacklist() {
-    chrome.storage.local.get(['blacklist', 'previousGoals', 'instructionCheck', 'participantId'], function (result) {
+    chrome.storage.local.get(['blacklist', 'previousGoals', 'participantId'], function (result) {
         var listContainer = document.getElementById('blacklist');
         var listElement = document.createElement('ul');
         listContainer.appendChild(listElement);
