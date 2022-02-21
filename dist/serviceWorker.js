@@ -692,14 +692,22 @@ var __webpack_exports__ = {};
 chrome.runtime.onInstalled.addListener(function (details) {
     (0,_onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__/* .onInstalledDo */ .nG)();
 });
-chrome.tabs.onUpdated.addListener(function (res) {
+chrome.tabs.onUpdated.addListener((function (tabId, changeInfo, tab) {
+    if (changeInfo.status == 'complete') {
+        checkIfNewWebsite();
+    }
+}));
+chrome.tabs.onActivated.addListener(function (res) {
+    checkIfNewWebsite();
+});
+function checkIfNewWebsite() {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tab) {
         if (tab[0]) {
             (0,_background__WEBPACK_IMPORTED_MODULE_1__/* .checkDomain */ .Ng)(tab[0].url, tab[0].id);
         }
     });
     routineCheck();
-});
+}
 chrome.runtime.onMessage.addListener(function (message, sender) {
     if (message.action == "Set Reminder") {
         var tabId = sender.tab.id;

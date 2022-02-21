@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Goal-Setting-Intervention Extension",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Chrome Extension for Bachelor Thesis Study",
 
 
@@ -14,7 +14,6 @@
     {
       "js": [
         "contentInjection.js",
-        "createParticipant.js",
         "mode.js"
       ],
       "matches": [
@@ -41,7 +40,6 @@
     {
       "resources": [
         "/contentInjection/modal.html",
-        "/createParticipant/createParticipant.html",
         "/materialize/materialize.js",
         "/materialize/materialize.min.css",
         "/modeSelection.js",

@@ -2,7 +2,7 @@
 import {checkIfParticipantIdIsSet, participantId, serverUrl} from "../background/exportedFunctions.ts";
 //@ts-ignore
 import {BlackList} from "../models/BlackList.ts";
-
+import "../materialize/materialize";
 
 let blacklist: Array<string>;
 let previousGoals: Array<string>;
