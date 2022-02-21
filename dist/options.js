@@ -12819,7 +12819,7 @@ function removeDomain(domain) {
     chrome.storage.local.get(['blacklist', 'participantId'], function (result) {
         var newBlacklist = result.blacklist;
         chrome.storage.local.set({ blacklist: newBlacklist.filter(function (entry) { return entry !== domain; }) });
-        sendUpdatedBlacklist(newBlacklist, result.participantId);
+        sendUpdatedBlacklist(newBlacklist.filter(function (entry) { return entry !== domain; }), result.participantId);
         openToast(domain + ' wurde aus der Blacklist entfernt');
         removeInTable(domain);
     });
