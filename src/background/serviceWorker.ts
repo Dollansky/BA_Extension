@@ -13,14 +13,24 @@ chrome.runtime.onInstalled.addListener((details) => {
     onInstalledDo();
 })
 
-chrome.tabs.onUpdated.addListener((res) => {
+chrome.tabs.onUpdated.addListener(((tabId, changeInfo, tab) => {
+    if(changeInfo.status == 'complete'){
+        checkIfNewWebsite();
+    }
+}))
+
+chrome.tabs.onActivated.addListener((res) => {
+    checkIfNewWebsite();
+})
+
+function checkIfNewWebsite() {
     chrome.tabs.query({active: true, currentWindow: true}, function (tab) {
         if (tab[0]) {
             checkDomain(tab[0].url, tab[0].id)
         }
     });
     routineCheck();
-})
+}
 
 chrome.runtime.onMessage.addListener((message, sender) => {
     if (message.action == "Set Reminder") {

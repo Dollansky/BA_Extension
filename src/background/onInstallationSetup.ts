@@ -7,8 +7,7 @@ import {
     setIcon,
     updateIconTimer
 } from "./exportedFunctions";
-//@ts-ignore
-import {Participant} from "../createParticipant/Participant";
+
 
 
 chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastDomain','activeWebsites','mode','dateWhenModeEnds'], (result) => {

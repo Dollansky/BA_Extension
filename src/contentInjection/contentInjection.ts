@@ -1,7 +1,7 @@
 import {browserUrl, checkIfBaselineIsFinished} from "../background/exportedFunctions";
 //@ts-ignore
 import html from "../html/reminderModal.html"
-
+import * as M from "../materialize/materialize";
 var currentDomain = new URL(location.href).hostname;
 var reason: any = null;
 

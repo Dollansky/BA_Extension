@@ -1,6 +1,6 @@
 {
   "name": "Goal-Setting-Intervention Extension",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Firefox Extension for Bachelor Thesis Study",
   "manifest_version": 2,
   "permissions": [
@@ -31,7 +31,6 @@
   },
   "web_accessible_resources": [
     "/contentInjection/modal.html",
-    "/createParticipant/createParticipant.html",
     "/materialize/materialize.js",
     "/materialize/materialize.min.css",
     "/img/**"

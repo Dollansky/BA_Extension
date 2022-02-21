@@ -65,7 +65,7 @@ function removeDomain(domain: string) {
     chrome.storage.local.get(['blacklist', 'participantId'], (result) => {
         const newBlacklist: Array<string> = result.blacklist;
         chrome.storage.local.set({blacklist: newBlacklist.filter(entry => entry !== domain)})
-        sendUpdatedBlacklist(newBlacklist, result.participantId);
+        sendUpdatedBlacklist(newBlacklist.filter(entry => entry !== domain), result.participantId);
         openToast(domain + ' wurde aus der Blacklist entfernt');
         removeInTable(domain);
     })
