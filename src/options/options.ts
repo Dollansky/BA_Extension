@@ -172,12 +172,12 @@ function addToTable(domain: string) {
     table.appendChild(tableRow);
 }
 
-
-chrome.runtime.onMessage.addListener((message) => {
-    if (message.action == "firstInstall") {
-        openHelp();
-    }
-});
+//
+// chrome.runtime.onMessage.addListener((message) => {
+//     if (message.action == "firstInstall") {
+//         openHelp();
+//     }
+// });
 
 
 function getCheckboxes() {
@@ -201,6 +201,8 @@ function checkForEinwilligung() {
 
 }
 
+
+
 function checkIfEinwilligungIsComplete() {
     // @ts-ignore
     let checkboxes: Array<HTMLInputElement> = getCheckboxes();
@@ -216,6 +218,7 @@ function checkIfEinwilligungIsComplete() {
         einwilligungsmodal.options.dismissible = true;
         //@ts-ignore
         document.getElementById('closeEinwilligung').disabled = false;
+        document.getElementById('closeEinwilligung').addEventListener("click", closeEinwilligung);
         chrome.storage.local.set({einwilligung: true});
     } else {
         chrome.storage.local.set({einwilligung: false});
@@ -224,9 +227,15 @@ function checkIfEinwilligungIsComplete() {
 
 
 function openEinwilligung() {
-    let einwilligungsmodal = M.Modal.init(document.getElementById('datenschutz'));
+    let einwilligungsmodal = M.Modal.init(document.getElementById('datenschutz'), {
+        dismissible: false,
+        onCloseEnd: openHelp
+    });
     setTimeout(() => {
         einwilligungsmodal.open();
     }, 1000)
 
+}
+function closeEinwilligung() {
+    M.Modal.getInstance(document.getElementById('datenschutz')).close()
 }
