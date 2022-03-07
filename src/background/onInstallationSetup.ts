@@ -10,7 +10,7 @@ import {
 
 
 
-chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastDomain','activeWebsites','mode','dateWhenModeEnds'], (result) => {
+chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastDomain','activeWebsites','mode','dateWhenModeEnds','einwilligung'], (result) => {
     if (result.blacklist == undefined) {
         const blacklist: Array<string> = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
         chrome.storage.local.set({blacklist: blacklist});
@@ -36,10 +36,13 @@ chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastD
     if(result.dateWhenModeEnds == undefined){
         chrome.storage.local.set( {dateWhenModeEnds: Date.now() + 100000})
     }
+    if(result.einwilligung == undefined){
+        chrome.storage.local.set({einwilligung: false})
+    }
 })
 
 export function onInstalledDo() {
-    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId'], (result) => {
+    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId','einwilligung'], (result) => {
         if (result.blacklist == undefined) {
             const blacklist: Array<string> = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({blacklist: blacklist});
@@ -85,6 +88,9 @@ export function onInstalledDo() {
 
         if(result.startTimeIntervall == undefined){
             chrome.storage.local.set({startTimeIntervall: new Date().getTime()})
+        }
+        if(result.einwilligung == undefined){
+            chrome.storage.local.set({einwilligung: false})
         }
     })
 }
