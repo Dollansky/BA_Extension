@@ -184,7 +184,7 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 };
 //@ts-ignore
 
-chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds'], function (result) {
+chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'einwilligung'], function (result) {
     if (result.blacklist == undefined) {
         var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
         chrome.storage.local.set({ blacklist: blacklist });
@@ -210,9 +210,12 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
     if (result.dateWhenModeEnds == undefined) {
         chrome.storage.local.set({ dateWhenModeEnds: 0 });
     }
+    if (result.einwilligung == undefined) {
+        chrome.storage.local.set({ einwilligung: false });
+    }
 });
 function onInstalledDo() {
-    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId'], function (result) {
+    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId', 'einwilligung'], function (result) {
         if (result.blacklist == undefined) {
             var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({ blacklist: blacklist });
@@ -253,6 +256,9 @@ function onInstalledDo() {
         }
         if (result.startTimeIntervall == undefined) {
             chrome.storage.local.set({ startTimeIntervall: new Date().getTime() });
+        }
+        if (result.einwilligung == undefined) {
+            chrome.storage.local.set({ einwilligung: false });
         }
     });
 }
@@ -12779,6 +12785,7 @@ var __webpack_exports__ = {};
 var blacklist;
 var previousGoals;
 setUpBlacklist();
+checkForEinwilligung();
 function openHelp() {
     var insModal = M.Modal.getInstance(document.getElementById('instructionsModal'));
     insModal.open();
@@ -12914,6 +12921,50 @@ chrome.runtime.onMessage.addListener(function (message) {
         openHelp();
     }
 });
+function getCheckboxes() {
+    var checkbox1 = document.getElementById('1');
+    var checkbox2 = document.getElementById('2');
+    var checkbox3 = document.getElementById('3');
+    var checkbox4 = document.getElementById('4');
+    var checkbox5 = document.getElementById('5');
+    return [checkbox1, checkbox2, checkbox3, checkbox4, checkbox5];
+}
+function checkForEinwilligung() {
+    chrome.storage.local.get(['einwilligung'], function (result) {
+        if (!result.einwilligung) {
+            getCheckboxes().forEach((function (value) {
+                value.addEventListener('click', checkIfEinwilligungIsComplete);
+            }));
+            openEinwilligung();
+        }
+    });
+}
+function checkIfEinwilligungIsComplete() {
+    // @ts-ignore
+    var checkboxes = getCheckboxes();
+    var isGiven = true;
+    checkboxes.forEach((function (value, index, array) {
+        if (!value.checked) {
+            isGiven = false;
+        }
+    }));
+    if (isGiven) {
+        var einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
+        einwilligungsmodal.options.dismissible = true;
+        //@ts-ignore
+        document.getElementById('closeEinwilligung').disabled = false;
+        chrome.storage.local.set({ einwilligung: true });
+    }
+    else {
+        chrome.storage.local.set({ einwilligung: false });
+    }
+}
+function openEinwilligung() {
+    var einwilligungsmodal = M.Modal.init(document.getElementById('datenschutz'));
+    setTimeout(function () {
+        einwilligungsmodal.open();
+    }, 1000);
+}
 
 })();
 

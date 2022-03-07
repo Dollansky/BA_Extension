@@ -182,7 +182,7 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 };
 //@ts-ignore
 
-chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds'], function (result) {
+chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'einwilligung'], function (result) {
     if (result.blacklist == undefined) {
         var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
         chrome.storage.local.set({ blacklist: blacklist });
@@ -208,9 +208,12 @@ chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'las
     if (result.dateWhenModeEnds == undefined) {
         chrome.storage.local.set({ dateWhenModeEnds: 0 });
     }
+    if (result.einwilligung == undefined) {
+        chrome.storage.local.set({ einwilligung: false });
+    }
 });
 function onInstalledDo() {
-    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId'], function (result) {
+    chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId', 'einwilligung'], function (result) {
         if (result.blacklist == undefined) {
             var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
             chrome.storage.local.set({ blacklist: blacklist });
@@ -251,6 +254,9 @@ function onInstalledDo() {
         }
         if (result.startTimeIntervall == undefined) {
             chrome.storage.local.set({ startTimeIntervall: new Date().getTime() });
+        }
+        if (result.einwilligung == undefined) {
+            chrome.storage.local.set({ einwilligung: false });
         }
     });
 }

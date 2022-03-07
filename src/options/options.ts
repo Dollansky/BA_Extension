@@ -9,6 +9,7 @@ let previousGoals: Array<string>;
 
 
 setUpBlacklist()
+checkForEinwilligung();
 
 function openHelp() {
     let insModal = M.Modal.getInstance(document.getElementById('instructionsModal'));
@@ -177,3 +178,55 @@ chrome.runtime.onMessage.addListener((message) => {
         openHelp();
     }
 });
+
+
+function getCheckboxes() {
+    let checkbox1 = document.getElementById('1');
+    let checkbox2 = document.getElementById('2');
+    let checkbox3 = document.getElementById('3');
+    let checkbox4 = document.getElementById('4');
+    let checkbox5 = document.getElementById('5');
+    return [checkbox1, checkbox2, checkbox3, checkbox4, checkbox5]
+}
+
+function checkForEinwilligung() {
+    chrome.storage.local.get(['einwilligung'], (result) => {
+        if (!result.einwilligung) {
+            getCheckboxes().forEach((value => {
+                value.addEventListener('click', checkIfEinwilligungIsComplete)
+            }))
+            openEinwilligung();
+        }
+    })
+
+}
+
+function checkIfEinwilligungIsComplete() {
+    // @ts-ignore
+    let checkboxes: Array<HTMLInputElement> = getCheckboxes();
+    let isGiven = true;
+    checkboxes.forEach(((value, index, array) => {
+        if (!value.checked) {
+            isGiven = false;
+
+        }
+    }))
+    if (isGiven) {
+        let einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
+        einwilligungsmodal.options.dismissible = true;
+        //@ts-ignore
+        document.getElementById('closeEinwilligung').disabled = false;
+        chrome.storage.local.set({einwilligung: true});
+    } else {
+        chrome.storage.local.set({einwilligung: false});
+    }
+}
+
+
+function openEinwilligung() {
+    let einwilligungsmodal = M.Modal.init(document.getElementById('datenschutz'));
+    setTimeout(() => {
+        einwilligungsmodal.open();
+    }, 1000)
+
+}
