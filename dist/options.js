@@ -336,6 +336,9 @@ var __webpack_exports__ = {};
 
 var blacklist;
 var previousGoals;
+M.AutoInit(document.body);
+M.Modal.getInstance(document.getElementById('datenschutz')).options.dismissible = false;
+M.Modal.getInstance(document.getElementById('datenschutz')).options.onCloseEnd = openHelp;
 setUpBlacklist();
 checkForEinwilligung();
 function openHelp() {
@@ -368,7 +371,6 @@ function setUpBlacklist() {
                 newDomain();
             }
         });
-        M.AutoInit(document.body);
         document.getElementById('helpButton').addEventListener("click", function () {
             openHelp();
         });
@@ -483,11 +485,11 @@ function getCheckboxes() {
     return [checkbox1, checkbox2, checkbox3, checkbox4, checkbox5];
 }
 function checkForEinwilligung() {
+    getCheckboxes().forEach((function (value) {
+        value.addEventListener('click', checkIfEinwilligungIsComplete);
+    }));
     chrome.storage.local.get(['einwilligung'], function (result) {
         if (!result.einwilligung) {
-            getCheckboxes().forEach((function (value) {
-                value.addEventListener('click', checkIfEinwilligungIsComplete);
-            }));
             openEinwilligung();
         }
     });
@@ -501,23 +503,22 @@ function checkIfEinwilligungIsComplete() {
             isGiven = false;
         }
     }));
+    var einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
     if (isGiven) {
-        var einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
         einwilligungsmodal.options.dismissible = true;
         //@ts-ignore
         document.getElementById('closeEinwilligung').disabled = false;
+        M.Modal.getInstance(document.getElementById('datenschutz')).options.dismissible = true;
         document.getElementById('closeEinwilligung').addEventListener("click", closeEinwilligung);
         chrome.storage.local.set({ einwilligung: true });
     }
     else {
+        einwilligungsmodal.options.dismissible = false;
         chrome.storage.local.set({ einwilligung: false });
     }
 }
 function openEinwilligung() {
-    var einwilligungsmodal = M.Modal.init(document.getElementById('datenschutz'), {
-        dismissible: false,
-        onCloseEnd: openHelp
-    });
+    var einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
     setTimeout(function () {
         einwilligungsmodal.open();
     }, 1000);

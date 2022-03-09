@@ -1,6 +1,6 @@
 {
   "name": "Goal-Setting-Intervention Extension",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Firefox Extension for Bachelor Thesis Study",
   "manifest_version": 2,
   "permissions": [

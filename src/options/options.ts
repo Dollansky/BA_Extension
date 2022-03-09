@@ -7,7 +7,9 @@ import {BlackList} from "../models/BlackList.ts";
 let blacklist: Array<string>;
 let previousGoals: Array<string>;
 
-
+M.AutoInit(document.body)
+M.Modal.getInstance(document.getElementById('datenschutz')).options.dismissible = false;
+M.Modal.getInstance(document.getElementById('datenschutz')).options.onCloseEnd = openHelp
 setUpBlacklist()
 checkForEinwilligung();
 
@@ -50,9 +52,6 @@ function setUpBlacklist() {
                 newDomain();
             }
         })
-
-        M.AutoInit(document.body);
-
 
         document.getElementById('helpButton').addEventListener("click", () => {
             openHelp();
@@ -190,11 +189,11 @@ function getCheckboxes() {
 }
 
 function checkForEinwilligung() {
+    getCheckboxes().forEach((value => {
+        value.addEventListener('click', checkIfEinwilligungIsComplete)
+    }))
     chrome.storage.local.get(['einwilligung'], (result) => {
         if (!result.einwilligung) {
-            getCheckboxes().forEach((value => {
-                value.addEventListener('click', checkIfEinwilligungIsComplete)
-            }))
             openEinwilligung();
         }
     })
@@ -208,33 +207,32 @@ function checkIfEinwilligungIsComplete() {
     let checkboxes: Array<HTMLInputElement> = getCheckboxes();
     let isGiven = true;
     checkboxes.forEach(((value, index, array) => {
+
         if (!value.checked) {
             isGiven = false;
-
         }
     }))
+    let einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
     if (isGiven) {
-        let einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
         einwilligungsmodal.options.dismissible = true;
         //@ts-ignore
         document.getElementById('closeEinwilligung').disabled = false;
+        M.Modal.getInstance(document.getElementById('datenschutz')).options.dismissible = true;
         document.getElementById('closeEinwilligung').addEventListener("click", closeEinwilligung);
         chrome.storage.local.set({einwilligung: true});
+
     } else {
+        einwilligungsmodal.options.dismissible = false;
         chrome.storage.local.set({einwilligung: false});
     }
 }
 
 
 function openEinwilligung() {
-    let einwilligungsmodal = M.Modal.init(document.getElementById('datenschutz'), {
-        dismissible: false,
-        onCloseEnd: openHelp
-    });
+    let einwilligungsmodal = M.Modal.getInstance(document.getElementById('datenschutz'));
     setTimeout(() => {
         einwilligungsmodal.open();
     }, 1000)
-
 }
 function closeEinwilligung() {
     M.Modal.getInstance(document.getElementById('datenschutz')).close()
