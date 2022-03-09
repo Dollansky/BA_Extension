@@ -3,13 +3,11 @@ import {browserUrl, openModeSelectInCurrentTab, sendMessageToEveryTab} from "../
 
 
 
-document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('openBlacklist').addEventListener('click', openBlacklist);
-    document.getElementById('selectMode').addEventListener('click', openModeSelectInCurrentTab);
-    getTimeAndUpdatePopup();
-})
 
 
+document.getElementById('openBlacklist').addEventListener('click', openBlacklist);
+document.getElementById('selectMode').addEventListener('click', openModeSelectInCurrentTab);
+getTimeAndUpdatePopup();
 
 function openBlacklist(){
     chrome.tabs.create({url: browserUrl + 'options/options.html'});

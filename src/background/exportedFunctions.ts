@@ -7,6 +7,7 @@ export const browserUrl = chrome.runtime.getURL("");
 
 
 export function checkIfModeActive(dateWhenModeEnds: any) {
+
     if (dateWhenModeEnds < Date.now() || dateWhenModeEnds == undefined) {
         chrome.storage.local.set({mode: null});
         sendMessageToEveryTab("Open Mode Select");
@@ -90,7 +91,7 @@ export function setIcon() {
 
 export function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], (result) => {
-        if (result.participantId == undefined) {
+        if (result.participantId == undefined || result.participantId == "") {
             createParticipant();
         } else {
             return result.participantId;

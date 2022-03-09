@@ -72,7 +72,7 @@ export function onInstalledDo() {
 
         }
         if (result.dateWhenModeEnds == undefined) {
-            chrome.storage.local.set({dateWhenModeEnds: 0 });
+            chrome.storage.local.set({dateWhenModeEnds: Date.now() + 300000 });
         }
 
         if (result.participantId == undefined) {
