@@ -10,37 +10,8 @@ import {
 
 
 
-chrome.storage.local.get(['blacklist', 'baselineFinished','previousGoals','lastDomain','activeWebsites','mode','dateWhenModeEnds','einwilligung'], (result) => {
-    if (result.blacklist == undefined) {
-        const blacklist: Array<string> = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
-        chrome.storage.local.set({blacklist: blacklist});
-        chrome.action.setIcon({path: 'img/work.png'});
-    }
-    if (result.baselineFinished === undefined || result.baselineFinished == null) {
-        var today = new Date();
-        chrome.storage.local.set({baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth() , today.getUTCFullYear()]});
-    }
-    if(result.previousGoals == undefined){
-        chrome.storage.local.set({previousGoals: []});
-    }
-    if(result.lastDomain == undefined){
-        chrome.storage.local.set({lastDomain: {domain: "Installation Time"}})
-    }
-    if(result.activeWebsites == undefined){
-        chrome.storage.local.set({activeWebsites: []});
-    }
-    if(result.mode == undefined){
-        sendMessageToEveryTab("Open Mode Select");
-    }
-    if(result.dateWhenModeEnds == undefined){
-        chrome.storage.local.set( {dateWhenModeEnds: 0})
-    }
-    if(result.einwilligung == undefined){
-        chrome.storage.local.set({einwilligung: false})
-    }
-})
-
 export function onInstalledDo() {
+
     chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId','einwilligung'], (result) => {
         if (result.blacklist == undefined) {
             const blacklist: Array<string> = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
@@ -72,7 +43,7 @@ export function onInstalledDo() {
 
         }
         if (result.dateWhenModeEnds == undefined) {
-            chrome.storage.local.set({dateWhenModeEnds: 0 });
+            chrome.storage.local.set({dateWhenModeEnds: Date.now() + 300000 });
         }
 
         if (result.participantId == undefined) {
