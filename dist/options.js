@@ -6,10 +6,9 @@
 
 "use strict";
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "KB": () => (/* binding */ serverUrl),
-/* harmony export */   "mU": () => (/* binding */ sendMessageToEveryTab)
+/* harmony export */   "KB": () => (/* binding */ serverUrl)
 /* harmony export */ });
-/* unused harmony exports browserUrl, checkIfModeActive, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, checkIfParticipantIdIsSet, onInstalledDo */
+/* unused harmony exports browserUrl, checkIfModeActive, sendMessageToEveryTab, openModeSelectInCurrentTab, checkIfBaselineIsFinished, updateIconTimer, calcIconTimer, setIcon, checkIfParticipantIdIsSet, onInstalledDo */
 /* harmony import */ var _onInstallationSetup__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(765);
 
 var serverUrl = "http://217.160.214.199:8080/api/";
@@ -90,7 +89,7 @@ function setIcon() {
 }
 function checkIfParticipantIdIsSet() {
     chrome.storage.local.get(['participantId'], function (result) {
-        if (result.participantId == undefined) {
+        if (result.participantId == undefined || result.participantId == "") {
             createParticipant();
         }
         else {
@@ -183,35 +182,6 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 };
 //@ts-ignore
 
-chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'einwilligung'], function (result) {
-    if (result.blacklist == undefined) {
-        var blacklist = ["www.instagram.com", "www.facebook.com", "www.youtube.com", "www.netflix.com", "www.twitch.tv"];
-        chrome.storage.local.set({ blacklist: blacklist });
-        chrome.action.setIcon({ path: 'img/work.png' });
-    }
-    if (result.baselineFinished === undefined || result.baselineFinished == null) {
-        var today = new Date();
-        chrome.storage.local.set({ baselineFinished: [today.getUTCDate() + 7, today.getUTCMonth(), today.getUTCFullYear()] });
-    }
-    if (result.previousGoals == undefined) {
-        chrome.storage.local.set({ previousGoals: [] });
-    }
-    if (result.lastDomain == undefined) {
-        chrome.storage.local.set({ lastDomain: { domain: "Installation Time" } });
-    }
-    if (result.activeWebsites == undefined) {
-        chrome.storage.local.set({ activeWebsites: [] });
-    }
-    if (result.mode == undefined) {
-        (0,_exportedFunctions__WEBPACK_IMPORTED_MODULE_0__/* .sendMessageToEveryTab */ .mU)("Open Mode Select");
-    }
-    if (result.dateWhenModeEnds == undefined) {
-        chrome.storage.local.set({ dateWhenModeEnds: 0 });
-    }
-    if (result.einwilligung == undefined) {
-        chrome.storage.local.set({ einwilligung: false });
-    }
-});
 function onInstalledDo() {
     chrome.storage.local.get(['blacklist', 'baselineFinished', 'previousGoals', 'lastDomain', 'activeWebsites', 'mode', 'dateWhenModeEnds', 'participantId', 'einwilligung'], function (result) {
         if (result.blacklist == undefined) {
@@ -241,7 +211,7 @@ function onInstalledDo() {
             chrome.storage.local.set({ mode: false });
         }
         if (result.dateWhenModeEnds == undefined) {
-            chrome.storage.local.set({ dateWhenModeEnds: 0 });
+            chrome.storage.local.set({ dateWhenModeEnds: Date.now() + 300000 });
         }
         if (result.participantId == undefined) {
             checkIfParticipantIdIsSet();
